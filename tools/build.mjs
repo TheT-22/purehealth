@@ -123,5 +123,8 @@ const sw = readFileSync(join(OUT, 'sw.js'), 'utf8')
   .replace('__VERSION__', version)
   .replace('__ASSETS__', JSON.stringify(assets));
 writeFileSync(join(OUT, 'sw.js'), sw);
+// index.html charge app.js avec la version : impossible de garder un ancien app.js en cache
+const indexPath = join(OUT, 'index.html');
+writeFileSync(indexPath, readFileSync(indexPath, 'utf8').replace('__BUILD_ID__', version));
 
 console.log(`Build terminé : docs/ (version ${version}, ${assets.length} fichiers)`);
