@@ -53,11 +53,12 @@ class Component extends DCLogic {
     const sum = (a) => a.reduce((x, y) => x + y, 0);
     e.cigs = st.tabac ? sum(e.daysCigs) : 0;
     e.drinks = st.alcool ? sum(e.daysDrinks) : 0;
-    e.dry = e.daysDrinks.filter((x) => x === 0).length;
-    e.smokeFree = e.daysCigs.filter((x) => x === 0).length;
+    const L = this.leadOf(w);
+    e.dry = e.daysDrinks.slice(L).filter((x) => x === 0).length;
+    e.smokeFree = e.daysCigs.slice(L).filter((x) => x === 0).length;
     e.vapeAmt = st.vape ? Math.round(sum(e.daysVape) * 10) / 10 : 0;
     e.podsAmt = st.vape ? sum(e.daysPods) : 0;
-    e.vapeFree = e.daysVape.filter((x, i) => x === 0 && e.daysPods[i] === 0).length;
+    e.vapeFree = e.daysVape.filter((x, i) => i >= L && x === 0 && e.daysPods[i] === 0).length;
     e.bottles = sum(e.daysBottles);
     h[w] = e;
     this.setState({ history: h });
@@ -228,6 +229,26 @@ class Component extends DCLogic {
 
   curParams() { return this.paramsOf(this.state); }
 
+  // Semaines calées du lundi au dimanche : la première semaine peut commencer
+  // en cours de route. Les jours d'avant le début du suivi (« lead ») sont ignorés.
+  leadOf(w) { return w === 0 ? (this.state.lead || 0) : 0; }
+
+  migrateWeeks() {
+    const s = this.state;
+    if (s.lead !== undefined || !s.paramsLog || !s.paramsLog.length) return null;
+    const shift = (new Date(s.startY, s.startM, s.startD).getDay() + 6) % 7;
+    if (!shift || s.history.length || s.dayIdx + shift > 6) return { lead: 0 };
+    const mv = (a) => [0, 0, 0, 0, 0, 0, 0].slice(0, shift).concat((a || [0, 0, 0, 0, 0, 0, 0]).slice(0, 7 - shift));
+    const f = (7 - shift) / 7;
+    return {
+      lead: shift, startD: s.startD - shift, dayIdx: s.dayIdx + shift,
+      daysCigs: mv(s.daysCigs), daysDrinks: mv(s.daysDrinks), daysVape: mv(s.daysVape), daysBottles: mv(s.daysBottles), daysPods: mv(s.daysPods),
+      paramsLog: s.paramsLog.map((e, i) => ({ off: i === 0 ? 0 : e.off + shift, p: e.p })),
+      targetCigs: Math.round(s.targetCigs * f), targetDrinks: Math.round(s.targetDrinks * f),
+      targetVape: Math.round(s.targetVape * f * 2) / 2, targetPods: Math.round(s.targetPods * f)
+    };
+  }
+
   paramsAt(off) {
     const log = this.state.paramsLog;
     if (!log || !log.length) return this.curParams();
@@ -241,7 +262,7 @@ class Component extends DCLogic {
     daysV = daysV || [0, 0, 0, 0, 0, 0, 0];
     daysB = daysB || [0, 0, 0, 0, 0, 0, 0];
     daysP = daysP || [0, 0, 0, 0, 0, 0, 0];
-    for (let i = 0; i < nDays; i++) {
+    for (let i = this.leadOf(wi); i < nDays; i++) {
       const P = this.paramsAt(wi * 7 + i);
       if (P.vape && P.liquidOn) {
         const dv = (P.vapeSubst ? 0 : P.baseVape / 7) - (daysV[i] || 0); v += dv; nV += dv * (P.nicMl || 0);
@@ -305,21 +326,24 @@ class Component extends DCLogic {
     n.streakVape = (st.daysVape[st.dayIdx] === 0 && st.daysPods[st.dayIdx] === 0) ? st.streakVape + 1 : 0;
     if (st.dayIdx < 6) { n.dayIdx = st.dayIdx + 1; return n; }
     const sum = (a) => a.reduce((x, y) => x + y, 0);
+    const L = st.history.length === 0 ? (st.lead || 0) : 0;
     const w = {
       cigs: st.tabac ? sum(st.daysCigs) : 0, drinks: st.alcool ? sum(st.daysDrinks) : 0,
-      tc: st.targetCigs, td: st.targetDrinks,
-      dry: st.daysDrinks.filter((x) => x === 0).length, smokeFree: st.daysCigs.filter((x) => x === 0).length,
+      tc: st.targetCigs, td: st.targetDrinks, lead: L,
+      dry: st.daysDrinks.slice(L).filter((x) => x === 0).length, smokeFree: st.daysCigs.slice(L).filter((x) => x === 0).length,
       daysCigs: st.daysCigs.slice(), daysDrinks: st.daysDrinks.slice(),
       daysVape: st.daysVape.slice(), vapeAmt: st.vape ? Math.round(sum(st.daysVape) * 10) / 10 : 0, tv: st.targetVape,
-      vapeFree: st.daysVape.filter((x, i) => x === 0 && st.daysPods[i] === 0).length,
+      vapeFree: st.daysVape.filter((x, i) => i >= L && x === 0 && st.daysPods[i] === 0).length,
       daysPods: st.daysPods.slice(), podsAmt: st.vape ? sum(st.daysPods) : 0, tp: st.targetPods,
       daysBottles: st.daysBottles.slice(), bottles: sum(st.daysBottles)
     };
     n.history = st.history.concat([w]);
-    n.targetVape = st.quitVape ? 0 : ((st.vapeSubst && st.tabac) ? st.vapeQty * 7 : this.nextTarget(w.vapeAmt, st.targetVape));
-    n.targetPods = st.quitVape ? 0 : ((st.vapeSubst && st.tabac) ? st.podQty * 7 : this.nextTarget(w.podsAmt, st.targetPods));
-    n.targetCigs = st.quitTabac ? 0 : this.nextTarget(w.cigs, st.targetCigs);
-    n.targetDrinks = st.quitAlcool ? 0 : this.nextTarget(w.drinks, st.targetDrinks);
+    // Semaine de départ incomplète : on ramène les chiffres sur 7 jours avant de fixer le palier suivant
+    const k = 7 / (7 - L), up = (x) => Math.round(x * k), upV = (x) => Math.round(x * k * 2) / 2;
+    n.targetVape = st.quitVape ? 0 : ((st.vapeSubst && st.tabac) ? st.vapeQty * 7 : this.nextTarget(upV(w.vapeAmt), upV(st.targetVape)));
+    n.targetPods = st.quitVape ? 0 : ((st.vapeSubst && st.tabac) ? st.podQty * 7 : this.nextTarget(up(w.podsAmt), up(st.targetPods)));
+    n.targetCigs = st.quitTabac ? 0 : this.nextTarget(up(w.cigs), up(st.targetCigs));
+    n.targetDrinks = st.quitAlcool ? 0 : this.nextTarget(up(w.drinks), up(st.targetDrinks));
     n.dayIdx = 0;
     n.daysCigs = [0, 0, 0, 0, 0, 0, 0];
     n.daysDrinks = [0, 0, 0, 0, 0, 0, 0];
@@ -340,7 +364,8 @@ class Component extends DCLogic {
   }
 
   componentDidMount() {
-    this.sync();
+    const m = this.migrateWeeks();
+    if (m) this.sync(m); else this.sync();
     this.syncTimer = setInterval(() => this.sync(), 60000);
   }
 
@@ -397,12 +422,13 @@ class Component extends DCLogic {
     const np = this.paramsOf(s);
     const log = (s.paramsLog || []).filter((e) => e.off !== off).concat([{ off: off, p: np }]).sort((x, y) => x.off - y.off);
     const o = { editing: false, editPrev: null, step: 'today', paramsLog: log };
-    if (s.tabac && !prev.tabac && !s.quitTabac) o.targetCigs = s.pct === 0 ? s.baseCigs : Math.round(s.baseCigs * p);
-    if (s.alcool && !prev.alcool && !s.quitAlcool) o.targetDrinks = s.pct === 0 ? s.baseDrinks : Math.round(s.baseDrinks * p);
+    const f = (7 - this.leadOf(s.history.length)) / 7;
+    if (s.tabac && !prev.tabac && !s.quitTabac) o.targetCigs = Math.round((s.pct === 0 ? s.baseCigs : s.baseCigs * p) * f);
+    if (s.alcool && !prev.alcool && !s.quitAlcool) o.targetDrinks = Math.round((s.pct === 0 ? s.baseDrinks : s.baseDrinks * p) * f);
     const substNow = s.vape && s.tabac && s.vapeSubst, substPrev = prev.vape && prev.tabac && prev.vapeSubst;
     if (s.vape && !s.quitVape && (!prev.vape || substNow !== substPrev || prev.vapeMode !== s.vapeMode)) {
-      o.targetVape = (substNow || s.pct === 0) ? s.vapeQty * 7 : Math.round(s.vapeQty * 7 * p);
-      o.targetPods = (substNow || s.pct === 0) ? s.podQty * 7 : Math.round(s.podQty * 7 * p);
+      o.targetVape = Math.round(((substNow || s.pct === 0) ? s.vapeQty * 7 : s.vapeQty * 7 * p) * f * 2) / 2;
+      o.targetPods = Math.round(((substNow || s.pct === 0) ? s.podQty * 7 : s.podQty * 7 * p) * f);
     }
     this.setState(Object.assign(o, extra || {}));
   }
@@ -432,7 +458,8 @@ class Component extends DCLogic {
 
   status(week, target, unit) {
     if (this.state.pct === 0 && target > 0) {
-      const exp = Math.round(target * (this.state.dayIdx + 1) / 7), diff = exp - week;
+      const L = this.leadOf(this.state.history.length);
+      const exp = Math.round(target * (this.state.dayIdx + 1 - L) / (7 - L)), diff = exp - week;
       return diff >= 0 ? diff + ' ' + unit + ' de moins que ton habitude à ce stade' : (-diff) + ' de plus que ton habitude à ce stade : rien de grave';
     }
     if (target === 0) return week === 0 ? 'Zéro cette semaine pour l’instant : continue comme ça' : 'Chaque jour sans compte : tu peux reprendre dès maintenant';
@@ -600,6 +627,7 @@ class Component extends DCLogic {
     const dayNames = dates.map((d) => wdFull[d.getDay()]);
     const fullDate = (i) => dayNames[i] + ' ' + dates[i].getDate() + ' ' + monthNames[dates[i].getMonth()];
     const curW = hist.length;
+    const lead0 = this.leadOf(curW), leadAll = s.lead || 0;
     const sw = (s.selWeek === null || s.selWeek === undefined) ? curW : s.selWeek;
     const sel = sw === curW ? (s.selDay === null ? s.dayIdx : s.selDay) : s.selDay;
     const dLabel = (w, i) => { const d = this.dateOf(w, i); return wdFull[d.getDay()] + ' ' + d.getDate() + ' ' + monthNames[d.getMonth()]; };
@@ -617,18 +645,19 @@ class Component extends DCLogic {
     const dayPicker = [0, 1, 2, 3, 4, 5, 6].map((i) => {
       const dt = this.dateOf(vw, i);
       const on = vw === sw && i === sel, today = vw === curW && i === s.dayIdx;
+      const off = vw === 0 && i < leadAll;
       return {
         letter: wdShort[dt.getDay()], num: String(dt.getDate()), selected: on ? 'true' : 'false',
-        aria: dLabel(vw, i) + (today ? " (aujourd'hui)" : ''),
-        pick: () => this.setState({ selWeek: vw, selDay: i, viewWeek: vw }),
-        style: 'height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; cursor: pointer; padding: 0; '
-          + (on ? 'background: #1E6F52; color: #FFFFFF; border: 1.5px solid #1E6F52;'
+        aria: dLabel(vw, i) + (today ? " (aujourd'hui)" : (off ? ' (avant le début du suivi)' : '')),
+        pick: off ? () => {} : () => this.setState({ selWeek: vw, selDay: i, viewWeek: vw }),
+        style: 'height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; cursor: ' + (off ? 'default' : 'pointer') + '; padding: 0; '
+          + (off ? 'background: transparent; color: #B9C0BA; border: 1.5px dashed #DDE1DA;' : on ? 'background: #1E6F52; color: #FFFFFF; border: 1.5px solid #1E6F52;'
                 : 'background: #FFFFFF; color: ' + (today ? '#1E6F52' : '#16201B') + '; border: 1.5px solid ' + (today ? '#1E6F52' : '#E1E4DE') + ';')
       };
     });
     const vd0 = this.dateOf(vw, 0), vd6 = this.dateOf(vw, 6);
     const viewWeekLabel = 'Semaine ' + (vw + 1) + ' · ' + vd0.getDate() + (vd0.getMonth() !== vd6.getMonth() ? ' ' + monthNames[vd0.getMonth()] : '') + ' – ' + vd6.getDate() + ' ' + monthNames[vd6.getMonth()];
-    const arrowStyle = (ok) => 'width: 44px; height: 36px; padding: 0; border: none; background: none; font-size: 22px; line-height: 1; cursor: ' + (ok ? 'pointer' : 'default') + '; color: ' + (ok ? '#8A938D' : '#D6DAD3') + ';';
+    const arrowStyle = (ok) => 'width: 44px; height: 44px; padding: 0; border: none; border-radius: 12px; background: ' + (ok ? '#E7EAE4' : 'transparent') + '; font-size: 24px; line-height: 1; color: #1E6F52; cursor: ' + (ok ? 'pointer' : 'default') + '; visibility: ' + (ok ? 'visible' : 'hidden') + ';';
     const daily = this.dailyBenefit(s);
     const facts = [];
     const personal = daily.title !== 'Le savais-tu ?';
@@ -652,10 +681,10 @@ class Component extends DCLogic {
     const quitCardText = vapeNext ? 'Bravo : déjà deux semaines sans cigarette. Quand tu te sens prêt, tu peux baisser la vape, en commençant par le dosage.' : s.tabac && !s.quitTabac && s.pct !== 0
       ? 'Ton palier est déjà ' + reducedPct + " % sous ta consommation de départ. Les plus grands bénéfices, surtout pour le cœur, viennent avec l'arrêt complet."
       : 'Quand tu te sens prêt, tu peux viser zéro, à ton rythme.';
-    const dryDays = s.daysDrinks.slice(0, s.dayIdx).filter((x) => x === 0).length;
+    const dryDays = s.daysDrinks.slice(lead0, s.dayIdx).filter((x) => x === 0).length;
 
     const elapsed = s.dayIdx + 1;
-    const expC = Math.round(s.baseCigs * elapsed / 7), expD = Math.round(s.baseDrinks * elapsed / 7);
+    const expC = Math.round(s.baseCigs * (elapsed - lead0) / 7), expD = Math.round(s.baseDrinks * (elapsed - lead0) / 7);
     const wkC = s.tabac ? Math.max(0, expC - s.weekCigs) : 0;
     const wkD = s.alcool ? Math.max(0, expD - s.weekDrinks) : 0;
     const wkDLife = s.alcool ? Math.max(0, expD - Math.max(s.weekDrinks, Math.round(10 * elapsed / 7))) : 0;
@@ -678,11 +707,11 @@ class Component extends DCLogic {
     const totBottlesAll = hist.reduce((acc, h) => acc + (h.daysBottles || []).reduce((x, y) => x + y, 0), 0) + s.daysBottles.reduce((x, y) => x + y, 0);
     let totC = 0, totD = 0, totDry = 0, totFree = 0, totSM = 0, totSMin = 0, totMC = 0, totMD = 0, totTC = 0, totTD = 0;
     hist.forEach((w, wi) => { const g2 = this.gainsSigned(w, wi); totC += g2.c; totD += g2.d; totSM += g2.money; totSMin += g2.minutes; totMC += g2.mC; totMD += g2.mD; totMV += g2.mV || 0; totNV += g2.nV || 0; totV += g2.v || 0; totTC += g2.tC; totTD += g2.tD; totDry += w.dry || 0; totFree += w.smokeFree || 0; });
-    const smokeFreeNow = s.daysCigs.slice(0, s.dayIdx).filter((x) => x === 0).length;
+    const smokeFreeNow = s.daysCigs.slice(lead0, s.dayIdx).filter((x) => x === 0).length;
     totC += sgC; totD += sgD; totSM += sgMoney; totSMin += sgMin;
     const z7 = [0, 0, 0, 0, 0, 0, 0];
     const trailZero = (a) => { let k = 0; for (let i = a.length - 1; i >= 0 && a[i] === 0; i--) k++; return k; };
-    const runC = trailZero([].concat.apply([], hist.map((h) => h.daysCigs || z7)).concat(s.daysCigs.slice(0, s.dayIdx)));
+    const runC = trailZero([].concat.apply([], hist.map((h) => h.daysCigs || z7)).concat(s.daysCigs.slice(0, s.dayIdx)).slice(leadAll));
     const allBottles = [].concat.apply([], hist.map((h) => h.daysBottles || z7)).concat(s.daysBottles.slice(0, s.dayIdx + 1));
     const bIdx = []; allBottles.forEach((n, i) => { for (let k = 0; k < n; k++) bIdx.push(i); });
     let bottleInsight;
@@ -696,8 +725,8 @@ class Component extends DCLogic {
     }
     let totBottles = 0; allBottles.forEach((n) => { totBottles += n; });
     const comb = (a, b) => (a || z7).map((x, i) => x + ((b || z7)[i] || 0));
-    const runV = trailZero([].concat.apply([], hist.map((h) => comb(h.daysVape, h.daysPods))).concat(comb(s.daysVape, s.daysPods).slice(0, s.dayIdx)));
-    const runD = trailZero([].concat.apply([], hist.map((h) => h.daysDrinks || z7)).concat(s.daysDrinks.slice(0, s.dayIdx)));
+    const runV = trailZero([].concat.apply([], hist.map((h) => comb(h.daysVape, h.daysPods))).concat(comb(s.daysVape, s.daysPods).slice(0, s.dayIdx)).slice(leadAll));
+    const runD = trailZero([].concat.apply([], hist.map((h) => h.daysDrinks || z7)).concat(s.daysDrinks.slice(0, s.dayIdx)).slice(leadAll));
     const plural = (n, one, many) => n + ' ' + (n > 1 ? many : one);
     totMV += cw.mV; totNV += cw.nV; totV += cw.v;
     totMC += cw.mC; totMD += cw.mD; totTC += cw.tC; totTD += cw.tD; totDry += dryDays; totFree += smokeFreeNow;
@@ -769,13 +798,13 @@ class Component extends DCLogic {
         title: title, goal: goal, total: fmt(Math.round(week * 10) / 10), status: status, freeDays: freeLabel,
         barStyle: this.barStyle(week, target),
         days: arr.map((v, i) => {
-          const past = i <= s.dayIdx || v > 0, today = i === s.dayIdx;
+          const off = i < lead0, past = !off && (i <= s.dayIdx || v > 0), today = i === s.dayIdx;
           const h = past ? Math.max(4, Math.round(v / max * 64)) : 4;
-          const col = !past ? '#E7EAE4' : (v === 0 ? '#9FD0B9' : (today ? '#14513B' : '#1E6F52'));
+          const col = off ? 'transparent' : (!past ? '#E7EAE4' : (v === 0 ? '#9FD0B9' : (today ? '#14513B' : '#1E6F52')));
           return {
             val: past ? fmt(v) : '',
             label: dayLetters[i],
-            labelStyle: today ? 'font-size: 12px; font-weight: 700; color: #1E6F52' : 'font-size: 12px; color: #55605A',
+            labelStyle: today ? 'font-size: 12px; font-weight: 700; color: #1E6F52' : 'font-size: 12px; color: ' + (off ? '#B9C0BA' : '#55605A'),
             barStyle: 'width: 100%; max-width: 30px; border-radius: 6px 6px 2px 2px; height: ' + h + 'px; background: ' + col + ';'
           };
         })
@@ -788,7 +817,7 @@ class Component extends DCLogic {
     if (s.alcool) weekCards.push(mkWeekCard("Verres d'alcool", s.daysDrinks, s.baseDrinks, s.targetDrinks,
       s.quitAlcool ? 'Objectif : 0' : (s.pct === 0 ? 'Habitude : ' : 'Palier : ') + s.targetDrinks,
       this.status(s.weekDrinks, s.targetDrinks, 'verres'), 'Jours sans alcool cette semaine : ' + dryDays));
-    const vapeFreeNow = s.daysVape.slice(0, s.dayIdx).filter((x, i) => x === 0 && s.daysPods[i] === 0).length;
+    const vapeFreeNow = s.daysVape.slice(0, s.dayIdx).filter((x, i) => i >= lead0 && x === 0 && s.daysPods[i] === 0).length;
     const weekBottles = s.daysBottles.reduce((x, y) => x + y, 0);
     const weekSpendL = weekBottles * s.vapePrice, weekSpendP = s.weekPods * s.podPrice;
     const vStat = (week, target, unit) => s.quitVape ? (week === 0 ? "Zéro cette semaine pour l'instant : continue comme ça" : 'Chaque jour sans compte : tu peux reprendre dès maintenant')
@@ -953,7 +982,19 @@ class Component extends DCLogic {
 
       paces: paces, previewRows: previewRows,
       startPlan: () => {
-        if (!s.editing) { const t0 = new Date(); this.setState({ startY: t0.getFullYear(), startM: t0.getMonth(), startD: t0.getDate(), simDays: 0, dayIdx: 0, history: [], paramsLog: [{ off: 0, p: this.paramsOf(s) }], targetVape: (subst || s.pct === 0) ? s.vapeQty * 7 : Math.round(s.vapeQty * 7 * p), targetPods: (subst || s.pct === 0) ? s.podQty * 7 : Math.round(s.podQty * 7 * p), step: 'today', targetCigs: s.pct === 0 ? s.baseCigs : Math.round(s.baseCigs * p), targetDrinks: s.pct === 0 ? s.baseDrinks : Math.round(s.baseDrinks * p) }); return; }
+        if (!s.editing) {
+          const t0 = new Date(), L = (t0.getDay() + 6) % 7, f = (7 - L) / 7, z = () => [0, 0, 0, 0, 0, 0, 0];
+          this.setState({
+            startY: t0.getFullYear(), startM: t0.getMonth(), startD: t0.getDate() - L, lead: L, simDays: 0, dayIdx: L, history: [],
+            daysCigs: z(), daysDrinks: z(), daysVape: z(), daysBottles: z(), daysPods: z(), streakCigs: 0, streakDrinks: 0, streakVape: 0,
+            paramsLog: [{ off: 0, p: this.paramsOf(s) }], step: 'today',
+            targetVape: Math.round(((subst || s.pct === 0) ? s.vapeQty * 7 : s.vapeQty * 7 * p) * f * 2) / 2,
+            targetPods: Math.round(((subst || s.pct === 0) ? s.podQty * 7 : s.podQty * 7 * p) * f),
+            targetCigs: Math.round((s.pct === 0 ? s.baseCigs : s.baseCigs * p) * f),
+            targetDrinks: Math.round((s.pct === 0 ? s.baseDrinks : s.baseDrinks * p) * f)
+          });
+          return;
+        }
         const refC = last ? last.cigs : s.baseCigs, refD = last ? last.drinks : s.baseDrinks;
         const o = {};
         if (!s.quitTabac) o.targetCigs = s.pct === 0 ? s.baseCigs : Math.max(0, Math.round(Math.min(refC, s.baseCigs) * p));
@@ -1076,7 +1117,7 @@ class Component extends DCLogic {
       showQuitCard: showQuitCard, quitCardText: quitCardText, quitOffers: quitOffers,
       cigGoalLabel: s.quitTabac ? 'Objectif : 0' : (s.pct === 0 ? 'Habitude : ' : 'Palier : ') + s.targetCigs,
       drinkGoalLabel: s.quitAlcool ? 'Objectif : 0' : (s.pct === 0 ? 'Habitude : ' : 'Palier : ') + s.targetDrinks,
-      hasYesterday: s.dayIdx > 0,
+      hasYesterday: s.dayIdx > lead0,
       yCigs: s.dayIdx > 0 ? s.daysCigs[s.dayIdx - 1] : 0,
       yDrinks: s.dayIdx > 0 ? s.daysDrinks[s.dayIdx - 1] : 0,
       showSmokeStreak: s.tabac && (s.quitTabac || s.streakCigs > 0),

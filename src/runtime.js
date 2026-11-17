@@ -71,7 +71,8 @@ export class DCLogic extends Component {
       if (saved && typeof saved === 'object') {
         TRANSIENT.forEach((k) => { delete saved[k]; });
         if (saved.paramsLog && saved.paramsLog.length && MAIN_STEPS.indexOf(saved.step) < 0) saved.step = 'today';
-        this.state = Object.assign({}, this.state, saved);
+        // setState (et non this.state = …) : Preact prépare l'état avant cet appel
+        this.setState(saved);
       }
     } catch (e) { /* données illisibles : on repart de zéro */ }
   }
