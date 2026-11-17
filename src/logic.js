@@ -661,19 +661,60 @@ class Component extends DCLogic {
     const selArrP = pastW ? (pastW.daysPods || zero7) : s.daysPods;
     const selArrB = pastW ? (pastW.daysBottles || zero7) : s.daysBottles;
     const vw = (s.viewWeek === null || s.viewWeek === undefined) ? sw : s.viewWeek;
+    // Couleur de chaque jour : consommation comparée au plafond du jour
+    // (plafond de la semaine réparti sur les jours où l'on consomme d'habitude ;
+    // sans objectif ou vape d'aide à l'arrêt : habitude d'un jour de consommation)
+    const nDaysC = s.smokeFreq === 'daily' ? 7 : Math.max(1, s.smokeDays);
+    const nDaysD = s.drinkFreq === 'daily' ? 7 : Math.max(1, s.drinkDays);
+    const lvl = (v, cap) => (v <= 0 ? 0 : (cap <= 0 ? 3 : (v / cap <= 0.7 ? 1 : (v / cap <= 1 ? 2 : 3))));
+    const dayInfo = (w, i) => {
+      const H = w < curW ? (hist[w] || {}) : null;
+      const at = (k) => ((H ? (H[k] || zero7) : (s[k] || zero7))[i] || 0);
+      const pick = (hk, sk) => (H && H[hk] !== undefined ? H[hk] : s[sk]);
+      const levels = [], dots = [];
+      if (s.tabac) {
+        const v = at('daysCigs');
+        const cap = s.pct === 0 ? (s.quitTabac ? 0 : s.cigsPerOcc) : Math.round(pick('tc', 'targetCigs') / nDaysC);
+        levels.push(lvl(v, cap)); dots.push(v === 0);
+      }
+      if (s.alcool) {
+        const v = at('daysDrinks');
+        const cap = s.pct === 0 ? (s.quitAlcool ? 0 : s.drinksPerOcc) : Math.round(pick('td', 'targetDrinks') / nDaysD);
+        levels.push(lvl(v, cap)); dots.push(v === 0);
+      }
+      if (s.vape) {
+        const noGoal = subst || s.pct === 0;
+        const lv = liqOn ? at('daysVape') : 0, pv = podOn ? at('daysPods') : 0;
+        if (liqOn) levels.push(lvl(lv, s.quitVape ? 0 : (noGoal ? s.vapeQty : pick('tv', 'targetVape') / 7)));
+        if (podOn) levels.push(lvl(pv, s.quitVape ? 0 : (noGoal ? s.podQty : Math.round(pick('tp', 'targetPods') / 7))));
+        dots.push(lv + pv === 0);
+      }
+      return { level: levels.length ? Math.max.apply(null, levels) : 0, dots: dots };
+    };
+    const tint = [
+      { bg: '#E1F5EE', bd: '#5DCAA5', fg: '#085041', txt: 'sans consommation' },
+      { bg: '#EAF3DE', bd: '#97C459', fg: '#27500A', txt: 'bien sous le plafond' },
+      { bg: '#FAEEDA', bd: '#EF9F27', fg: '#633806', txt: 'proche du plafond' },
+      { bg: '#FCEBEB', bd: '#E24B4A', fg: '#791F1F', txt: 'plafond dépassé' }
+    ];
     const dayPicker = [0, 1, 2, 3, 4, 5, 6].map((i) => {
       const dt = this.dateOf(vw, i);
       const on = vw === sw && i === sel, today = vw === curW && i === s.dayIdx;
       const off = vw === 0 && i < leadAll;
       const future = vw > curW || (vw === curW && i > s.dayIdx);
       const locked = off || future;
+      const info = locked ? null : dayInfo(vw, i), tc = info ? tint[info.level] : null;
       return {
+        dots: (info ? info.dots : (s.tabac ? [0] : []).concat(s.alcool ? [0] : [], s.vape ? [0] : []).map(() => null)).map((z) => ({
+          style: 'width: 7px; height: 7px; border-radius: 50%; box-sizing: border-box; flex: none; '
+            + (z === null ? 'visibility: hidden;' : (z ? 'background: #1D9E75;' : 'border: 1.5px solid #B9C0BA;'))
+        })),
         letter: wdShort[dt.getDay()], num: String(dt.getDate()), selected: on ? 'true' : 'false',
-        aria: dLabel(vw, i) + (today ? " (aujourd'hui)" : (off ? ' (avant le début du suivi)' : (future ? ' (à venir)' : ''))),
+        aria: dLabel(vw, i) + (today ? " (aujourd'hui)" : (off ? ' (avant le début du suivi)' : (future ? ' (à venir)' : ''))) + (tc ? ', ' + tc.txt : ''),
         pick: locked ? () => {} : () => this.setState(Object.assign({ selWeek: vw, selDay: i, viewWeek: vw }, vw === 0 && i < (s.startLead || 0) ? { pastHintSeen: true } : {})),
         style: 'height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; cursor: ' + (locked ? 'default' : 'pointer') + '; padding: 0; '
-          + (off ? 'background: transparent; color: #B9C0BA; border: 1.5px dashed #DDE1DA;' : future ? 'background: #FAFBF9; color: #A7AEA8; border: 1.5px solid #ECEEEA;' : on ? 'background: #1E6F52; color: #FFFFFF; border: 1.5px solid #1E6F52;'
-                : 'background: #FFFFFF; color: ' + (today ? '#1E6F52' : '#16201B') + '; border: 1.5px solid ' + (today ? '#1E6F52' : '#E1E4DE') + ';')
+          + (off ? 'background: transparent; color: #B9C0BA; border: 1.5px dashed #DDE1DA;' : future ? 'background: #FAFBF9; color: #A7AEA8; border: 1.5px solid #ECEEEA;'
+                : 'background: ' + tc.bg + '; color: ' + tc.fg + '; border: ' + (on ? '2.5px solid #16201B;' : '1.5px solid ' + tc.bd + ';'))
       };
     });
     const vd0 = this.dateOf(vw, 0), vd6 = this.dateOf(vw, 6);

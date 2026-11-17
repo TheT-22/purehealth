@@ -338,10 +338,15 @@
 </div>
 <div role="tablist" aria-label="Jours" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
 <sc-for list="{{ dayPicker }}" as="dp" hint-placeholder-count="7">
+<div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
 <button type="button" role="tab" aria-selected="{{ dp.selected }}" aria-label="{{ dp.aria }}" onClick="{{ dp.pick }}" style="{{ dp.style }}">
 <span style="font-size: 11px; font-weight: 500; opacity: 0.85">{{ dp.letter }}</span>
 <span style="font-size: 17px; font-weight: 700; line-height: 1">{{ dp.num }}</span>
 </button>
+<div aria-hidden="true" style="display: flex; justify-content: center; gap: 3px; height: 7px">
+<sc-for list="{{ dp.dots }}" as="dot"><span style="{{ dot.style }}"></span></sc-for>
+</div>
+</div>
 </sc-for>
 </div>
 </div>
