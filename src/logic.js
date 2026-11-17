@@ -243,19 +243,30 @@ class Component extends DCLogic {
 
   migrateWeeks() {
     const s = this.state;
-    if (s.lead !== undefined || !s.paramsLog || !s.paramsLog.length) return null;
-    const shift = (new Date(s.startY, s.startM, s.startD).getDay() + 6) % 7;
-    if (!shift || s.history.length || s.dayIdx + shift > 6) return { lead: 0 };
-    const mv = (a) => [0, 0, 0, 0, 0, 0, 0].slice(0, shift).concat((a || [0, 0, 0, 0, 0, 0, 0]).slice(0, 7 - shift));
-    const f = (7 - shift) / 7;
-    return {
-      lead: shift, startD: s.startD - shift, dayIdx: s.dayIdx + shift,
-      daysCigs: mv(s.daysCigs), daysDrinks: mv(s.daysDrinks), daysVape: mv(s.daysVape), daysBottles: mv(s.daysBottles), daysPods: mv(s.daysPods),
-      paramsLog: s.paramsLog.map((e, i) => ({ off: i === 0 ? 0 : e.off + shift, p: e.p })),
-      targetCigs: Math.round(s.targetCigs * f), targetDrinks: Math.round(s.targetDrinks * f),
-      targetVape: Math.round(s.targetVape * f * 2) / 2, targetPods: Math.round(s.targetPods * f)
-    };
+    if (!s.paramsLog || !s.paramsLog.length) return null;
+    // Ancien format : suivi commencé un autre jour que le lundi
+    if (s.lead === undefined) {
+      const shift = (new Date(s.startY, s.startM, s.startD).getDay() + 6) % 7;
+      if (!shift || s.history.length || s.dayIdx + shift > 6) return { lead: 0 };
+      const mv = (a) => [0, 0, 0, 0, 0, 0, 0].slice(0, shift).concat((a || [0, 0, 0, 0, 0, 0, 0]).slice(0, 7 - shift));
+      return {
+        lead: 0, startLead: shift, startD: s.startD - shift, dayIdx: s.dayIdx + shift,
+        daysCigs: mv(s.daysCigs), daysDrinks: mv(s.daysDrinks), daysVape: mv(s.daysVape), daysBottles: mv(s.daysBottles), daysPods: mv(s.daysPods),
+        paramsLog: s.paramsLog.map((e, i) => ({ off: i === 0 ? 0 : e.off + shift, p: e.p }))
+      };
+    }
+    // Version du 17/11 matin : jours d'avant l'installation bloqués et palier réduit. On les rouvre.
+    if (s.lead > 0 && !s.history.length) {
+      const f = (7 - s.lead) / 7;
+      return {
+        lead: 0, startLead: s.lead,
+        targetCigs: Math.round(s.targetCigs / f), targetDrinks: Math.round(s.targetDrinks / f),
+        targetVape: Math.round(s.targetVape / f * 2) / 2, targetPods: Math.round(s.targetPods / f)
+      };
+    }
+    return null;
   }
+
 
   paramsAt(off) {
     const log = this.state.paramsLog;
@@ -659,7 +670,7 @@ class Component extends DCLogic {
       return {
         letter: wdShort[dt.getDay()], num: String(dt.getDate()), selected: on ? 'true' : 'false',
         aria: dLabel(vw, i) + (today ? " (aujourd'hui)" : (off ? ' (avant le début du suivi)' : (future ? ' (à venir)' : ''))),
-        pick: locked ? () => {} : () => this.setState({ selWeek: vw, selDay: i, viewWeek: vw }),
+        pick: locked ? () => {} : () => this.setState(Object.assign({ selWeek: vw, selDay: i, viewWeek: vw }, vw === 0 && i < (s.startLead || 0) ? { pastHintSeen: true } : {})),
         style: 'height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; cursor: ' + (locked ? 'default' : 'pointer') + '; padding: 0; '
           + (off ? 'background: transparent; color: #B9C0BA; border: 1.5px dashed #DDE1DA;' : future ? 'background: #FAFBF9; color: #A7AEA8; border: 1.5px solid #ECEEEA;' : on ? 'background: #1E6F52; color: #FFFFFF; border: 1.5px solid #1E6F52;'
                 : 'background: #FFFFFF; color: ' + (today ? '#1E6F52' : '#16201B') + '; border: 1.5px solid ' + (today ? '#1E6F52' : '#E1E4DE') + ';')
@@ -1011,9 +1022,9 @@ class Component extends DCLogic {
       paces: paces, previewRows: previewRows,
       startPlan: () => {
         if (!s.editing) {
-          const t0 = new Date(), L = (t0.getDay() + 6) % 7, f = (7 - L) / 7, z = () => [0, 0, 0, 0, 0, 0, 0];
+          const t0 = new Date(), L = (t0.getDay() + 6) % 7, f = 1, z = () => [0, 0, 0, 0, 0, 0, 0];
           this.setState({
-            startY: t0.getFullYear(), startM: t0.getMonth(), startD: t0.getDate() - L, lead: L, simDays: 0, dayIdx: L, history: [],
+            startY: t0.getFullYear(), startM: t0.getMonth(), startD: t0.getDate() - L, lead: 0, startLead: L, pastHintSeen: false, simDays: 0, dayIdx: L, history: [],
             daysCigs: z(), daysDrinks: z(), daysVape: z(), daysBottles: z(), daysPods: z(), streakCigs: 0, streakDrinks: 0, streakVape: 0,
             paramsLog: [{ off: 0, p: this.paramsOf(s) }], step: 'today',
             targetVape: Math.round(((subst || s.pct === 0) ? s.vapeQty * 7 : s.vapeQty * 7 * p) * f * 2) / 2,
@@ -1046,6 +1057,8 @@ class Component extends DCLogic {
       addDrink: () => this.edit(sw, 'daysDrinks', sel, 1),
       removeDrink: () => this.edit(sw, 'daysDrinks', sel, -1),
       selWeekNum: sw + 1, pastHint: curW > 0,
+      showFillPast: curW === 0 && (s.startLead || 0) > 0 && !s.pastHintSeen,
+      fillPastText: 'Ta semaine a commencé lundi : touche ' + ((s.startLead || 0) > 1 ? 'les jours précédents' : 'lundi') + ' pour noter ce que tu as consommé. Un jour non rempli compte comme zéro.',
       notBoth: !multi,
       counterWrap: multi ? 'display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: stretch' : 'display: flex; flex-direction: column; gap: 16px',
       counterCard: ((liqOn && podOn && nProd === 2) ? 'grid-column: 1 / -1; ' : '') + 'background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; '

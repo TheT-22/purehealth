@@ -346,6 +346,9 @@
 </div>
 </div>
 
+<sc-if value="{{ showFillPast }}">
+<p style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #FFF4E5; color: #7A4A0B; font-size: 14px; line-height: 1.45">{{ fillPastText }}</p>
+</sc-if>
 <section aria-label="Les bienfaits, en bref" onTouchStart="{{ factTouchStart }}" onTouchEnd="{{ factTouchEnd }}" style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 16px; padding: 8px 2px; display: flex; align-items: center; gap: 2px">
 <button type="button" aria-label="Fait précédent" onClick="{{ factPrev }}" style="flex: none; width: 28px; height: 44px; padding: 0; border: none; background: none; color: #8A938D; font-size: 20px; line-height: 1; cursor: pointer">‹</button>
 <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
