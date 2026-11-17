@@ -1,15 +1,13 @@
 // Service worker de Pure Health.
-// Avec connexion : on charge toujours la dernière version publiée (réseau d'abord).
-// Sans connexion : on utilise la copie enregistrée sur le téléphone.
+// L'app s'ouvre avec la version enregistrée sur le téléphone (elle marche donc hors connexion).
+// Une nouvelle version se télécharge en arrière-plan puis attend : l'utilisateur choisit
+// quand l'installer (fenêtre « Nouvelle version disponible »).
 const CACHE = 'purehealth-__VERSION__';
 const ASSETS = __ASSETS__;
-const TIMEOUT = 4000; // au-delà, on bascule sur la copie locale pour ne pas faire attendre
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE)
-      .then((cache) => cache.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE).then((cache) => cache.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
   );
 });
 
@@ -21,25 +19,17 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-function fromNetwork(req) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('timeout')), TIMEOUT);
-    fetch(req, { cache: 'no-cache' }).then((res) => {
-      clearTimeout(timer);
-      if (!res || !res.ok) { reject(new Error('http')); return; }
-      const copy = res.clone();
-      caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
-      resolve(res);
-    }, (err) => { clearTimeout(timer); reject(err); });
-  });
-}
+// L'utilisateur a accepté la mise à jour
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   event.respondWith(
-    fromNetwork(req).catch(() =>
-      caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match('./index.html'))
-    )
+    caches.open(CACHE)
+      .then((cache) => cache.match(req, { ignoreSearch: true }))
+      .then((hit) => hit || fetch(req).catch(() => caches.match('./index.html')))
   );
 });
