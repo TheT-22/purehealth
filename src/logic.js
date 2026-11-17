@@ -654,12 +654,14 @@ class Component extends DCLogic {
       const dt = this.dateOf(vw, i);
       const on = vw === sw && i === sel, today = vw === curW && i === s.dayIdx;
       const off = vw === 0 && i < leadAll;
+      const future = vw > curW || (vw === curW && i > s.dayIdx);
+      const locked = off || future;
       return {
         letter: wdShort[dt.getDay()], num: String(dt.getDate()), selected: on ? 'true' : 'false',
-        aria: dLabel(vw, i) + (today ? " (aujourd'hui)" : (off ? ' (avant le début du suivi)' : '')),
-        pick: off ? () => {} : () => this.setState({ selWeek: vw, selDay: i, viewWeek: vw }),
-        style: 'height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; cursor: ' + (off ? 'default' : 'pointer') + '; padding: 0; '
-          + (off ? 'background: transparent; color: #B9C0BA; border: 1.5px dashed #DDE1DA;' : on ? 'background: #1E6F52; color: #FFFFFF; border: 1.5px solid #1E6F52;'
+        aria: dLabel(vw, i) + (today ? " (aujourd'hui)" : (off ? ' (avant le début du suivi)' : (future ? ' (à venir)' : ''))),
+        pick: locked ? () => {} : () => this.setState({ selWeek: vw, selDay: i, viewWeek: vw }),
+        style: 'height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; cursor: ' + (locked ? 'default' : 'pointer') + '; padding: 0; '
+          + (off ? 'background: transparent; color: #B9C0BA; border: 1.5px dashed #DDE1DA;' : future ? 'background: #FAFBF9; color: #A7AEA8; border: 1.5px solid #ECEEEA;' : on ? 'background: #1E6F52; color: #FFFFFF; border: 1.5px solid #1E6F52;'
                 : 'background: #FFFFFF; color: ' + (today ? '#1E6F52' : '#16201B') + '; border: 1.5px solid ' + (today ? '#1E6F52' : '#E1E4DE') + ';')
       };
     });
@@ -1057,8 +1059,8 @@ class Component extends DCLogic {
       plusDrinkLabel: multi ? '+' : '+ 1 verre',
       viewWeekLabel: viewWeekLabel,
       weekPrev: () => { if (vw > 0) this.setState({ viewWeek: vw - 1 }); },
-      weekNext: () => { if (vw < curW) this.setState({ viewWeek: vw + 1 }); },
-      weekPrevStyle: arrowStyle(vw > 0), weekNextStyle: arrowStyle(vw < curW),
+      weekNext: () => { if (vw < curW + 12) this.setState({ viewWeek: vw + 1 }); },
+      weekPrevStyle: arrowStyle(vw > 0), weekNextStyle: arrowStyle(vw < curW + 12),
       dayPicker: dayPicker, selTitle: selName,
       selCigs: selArrC[sel], selDrinks: selArrD[sel],
       vapeTracks: [].concat(liqOn ? [{ key: 'l' }] : [], podOn ? [{ key: 'p' }] : []).map((t, _i, all) => {

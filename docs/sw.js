@@ -1,7 +1,7 @@
 // Service worker de Pure Health.
 // Avec connexion : on charge toujours la dernière version publiée (réseau d'abord).
 // Sans connexion : on utilise la copie enregistrée sur le téléphone.
-const CACHE = 'purehealth-8e29c6b5f49e';
+const CACHE = 'purehealth-e35d21389054';
 const ASSETS = ["./","./app.js","./fonts.css","./fonts/inter-latin-400-normal.woff2","./fonts/inter-latin-500-normal.woff2","./fonts/inter-latin-600-normal.woff2","./fonts/inter-latin-700-normal.woff2","./fonts/space-grotesk-latin-500-normal.woff2","./fonts/space-grotesk-latin-700-normal.woff2","./icons/apple-touch-icon.png","./icons/favicon.svg","./icons/icon-192.png","./icons/icon-512.png","./icons/maskable-512.png","./index.html","./manifest.webmanifest"];
 const TIMEOUT = 4000; // au-delà, on bascule sur la copie locale pour ne pas faire attendre
 
