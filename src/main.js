@@ -6,34 +6,28 @@ if (navigator.storage && navigator.storage.persist) navigator.storage.persist().
 
 render(h(App, {}), document.getElementById('app'));
 
-// Fenêtre « Nouvelle version disponible » : l'utilisateur choisit quand mettre à jour
+// Petite note « Nouvelle version disponible » : un appui redémarre l'app sur la nouvelle version
 let accepted = false;
 function offerUpdate(worker) {
   if (!worker || document.getElementById('ph-update')) return;
-  const wrap = document.createElement('div');
-  wrap.id = 'ph-update';
-  wrap.setAttribute('style', 'position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; justify-content: center; padding: 0 12px calc(env(safe-area-inset-bottom) + 12px); pointer-events: none;');
-  wrap.innerHTML =
-    '<div role="dialog" aria-labelledby="ph-update-t" style="pointer-events: auto; width: 100%; max-width: 480px; box-sizing: border-box; background: #FFFFFF; border-radius: 20px; padding: 16px; box-shadow: 0 12px 32px rgba(22, 32, 27, 0.25); display: flex; flex-direction: column; gap: 12px; font-family: Inter, system-ui, sans-serif; color: #16201B">'
-    + '<div style="display: flex; flex-direction: column; gap: 4px">'
-    + '<span id="ph-update-t" style="font-size: 16px; font-weight: 700">Nouvelle version disponible</span>'
-    + '<span style="font-size: 14px; line-height: 1.4; color: #55605A">Mettre à jour maintenant ? Tes données sont conservées.</span>'
-    + '</div>'
-    + '<div style="display: flex; gap: 10px">'
-    + '<button type="button" data-a="later" style="flex: 1; height: 48px; border: 1.5px solid #CFD5CC; border-radius: 14px; background: #FFFFFF; color: #16201B; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Plus tard</button>'
-    + '<button type="button" data-a="ok" style="flex: 1; height: 48px; border: none; border-radius: 14px; background: #1E6F52; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Mettre à jour</button>'
-    + '</div></div>';
-  wrap.addEventListener('click', (e) => {
-    const a = e.target && e.target.getAttribute && e.target.getAttribute('data-a');
-    if (a === 'later') wrap.remove();
-    if (a === 'ok') {
-      accepted = true;
-      e.target.textContent = 'Mise à jour…';
-      worker.postMessage({ type: 'SKIP_WAITING' });
-      setTimeout(() => location.reload(), 4000); // filet de sécurité
-    }
+  const note = document.createElement('button');
+  note.id = 'ph-update';
+  note.type = 'button';
+  note.setAttribute('aria-label', 'Nouvelle version disponible : toucher pour mettre à jour');
+  note.setAttribute('style', 'position: fixed; top: calc(env(safe-area-inset-top) + 8px); left: 50%; transform: translateX(-50%); z-index: 50; width: calc(100% - 24px); max-width: 496px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: none; border-radius: 16px; background: #16201B; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; text-align: left; box-shadow: 0 8px 24px rgba(22, 32, 27, 0.25); cursor: pointer');
+  note.innerHTML = '<span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #9FD0B9"></span>'
+    + '<span style="display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0">'
+    + '<span style="font-size: 14px; font-weight: 600">Nouvelle version disponible</span>'
+    + '<span data-sub style="font-size: 13px; color: #C9D6CF">Touche ici pour mettre à jour</span></span>'
+    + '<span style="font-size: 18px; color: #9FD0B9">›</span>';
+  note.addEventListener('click', () => {
+    if (accepted) return;
+    accepted = true;
+    note.querySelector('[data-sub]').textContent = 'Mise à jour…';
+    worker.postMessage({ type: 'SKIP_WAITING' });
+    setTimeout(() => location.reload(), 4000); // filet de sécurité
   });
-  document.body.appendChild(wrap);
+  document.body.appendChild(note);
 }
 
 if ('serviceWorker' in navigator) {
