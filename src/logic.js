@@ -790,22 +790,37 @@ class Component extends DCLogic {
     const weekHero = hero(gLast.money, gLast.minutes, ' cette semaine', 'Par rapport à ta consommation habituelle.');
 
     const dayLetters = dates.map((d) => wdShort[d.getDay()] + ' ' + d.getDate());
-    const mkWeekCard = (title, arr, base, target, goal, status, freeLabel, fmt) => {
+    // Graphique de la semaine : barres suspendues, du vert au rouge selon la consommation du jour
+    // comparée à l'habitude d'un jour de consommation (ref)
+    const heat = (v, ref) => {
+      if (v === 0) return { bar: '#1D9E75', txt: '#0F6E56' };
+      const r = v / Math.max(ref, 0.1);
+      if (r < 0.5) return { bar: '#97C459', txt: '#16201B' };
+      if (r < 0.8) return { bar: '#EF9F27', txt: '#16201B' };
+      if (r <= 1) return { bar: '#D85A30', txt: '#16201B' };
+      return { bar: '#E24B4A', txt: '#A32D2D' };
+    };
+    const mkWeekCard = (title, arr, base, target, goal, status, freeLabel, fmt, ref) => {
       fmt = fmt || String;
+      ref = ref || base / 7;
       const week = arr.reduce((x, y) => x + y, 0);
-      const max = Math.max.apply(null, [1, Math.ceil(base / 7)].concat(arr));
+      const max = Math.max.apply(null, [1, ref].concat(arr));
       return {
         title: title, goal: goal, total: fmt(Math.round(week * 10) / 10), status: status, freeDays: freeLabel,
         barStyle: this.barStyle(week, target),
         days: arr.map((v, i) => {
           const off = i < lead0, past = !off && (i <= s.dayIdx || v > 0), today = i === s.dayIdx;
-          const h = past ? Math.max(4, Math.round(v / max * 64)) : 4;
-          const col = off ? 'transparent' : (!past ? '#E7EAE4' : (v === 0 ? '#9FD0B9' : (today ? '#14513B' : '#1E6F52')));
+          const c = heat(v, ref);
+          let bar = 'width: 100%; max-width: 30px; flex: none; ';
+          if (off) bar += 'height: 22px; border: 1.5px dashed #DDE1DA; border-top: none; border-radius: 0 0 6px 6px; box-sizing: border-box;';
+          else if (!past) bar += 'height: 4px; border-radius: 0 0 3px 3px; background: #E7EAE4;';
+          else bar += 'height: ' + (v === 0 ? 4 : Math.max(6, Math.round(v / max * 72))) + 'px; border-radius: 0 0 6px 6px; background: ' + c.bar + ';';
           return {
             val: past ? fmt(v) : '',
+            valStyle: 'margin-top: 3px; font-size: 12px; font-weight: 600; color: ' + c.txt + ';',
             label: dayLetters[i],
             labelStyle: today ? 'font-size: 12px; font-weight: 700; color: #1E6F52' : 'font-size: 12px; color: ' + (off ? '#B9C0BA' : '#55605A'),
-            barStyle: 'width: 100%; max-width: 30px; border-radius: 6px 6px 2px 2px; height: ' + h + 'px; background: ' + col + ';'
+            barStyle: bar
           };
         })
       };
@@ -813,10 +828,10 @@ class Component extends DCLogic {
     const weekCards = [];
     if (s.tabac) weekCards.push(mkWeekCard('Cigarettes', s.daysCigs, s.baseCigs, s.targetCigs,
       s.quitTabac ? 'Objectif : 0' : (s.pct === 0 ? 'Habitude : ' : 'Palier : ') + s.targetCigs,
-      this.status(s.weekCigs, s.targetCigs, 'cigarettes'), 'Jours sans tabac cette semaine : ' + smokeFreeNow));
+      this.status(s.weekCigs, s.targetCigs, 'cigarettes'), 'Jours sans tabac cette semaine : ' + smokeFreeNow, null, s.cigsPerOcc));
     if (s.alcool) weekCards.push(mkWeekCard("Verres d'alcool", s.daysDrinks, s.baseDrinks, s.targetDrinks,
       s.quitAlcool ? 'Objectif : 0' : (s.pct === 0 ? 'Habitude : ' : 'Palier : ') + s.targetDrinks,
-      this.status(s.weekDrinks, s.targetDrinks, 'verres'), 'Jours sans alcool cette semaine : ' + dryDays));
+      this.status(s.weekDrinks, s.targetDrinks, 'verres'), 'Jours sans alcool cette semaine : ' + dryDays, null, s.drinksPerOcc));
     const vapeFreeNow = s.daysVape.slice(0, s.dayIdx).filter((x, i) => i >= lead0 && x === 0 && s.daysPods[i] === 0).length;
     const weekBottles = s.daysBottles.reduce((x, y) => x + y, 0);
     const weekSpendL = weekBottles * s.vapePrice, weekSpendP = s.weekPods * s.podPrice;
@@ -827,9 +842,9 @@ class Component extends DCLogic {
     const vapeStatus = liqOn ? vStat(s.weekVape, s.targetVape, 'ml') : vStat(s.weekPods, s.targetPods, 'pods');
     const vGoal = (t, unit) => s.quitVape ? 'Objectif : 0' : (subst ? 'Aide à l’arrêt' : ((s.pct === 0 ? 'Habitude : ' : 'Palier : ') + fq(t)));
     if (liqOn) weekCards.push(mkWeekCard('Vape · liquide (ml)', s.daysVape, s.vapeQty * 7, s.targetVape, vGoal(s.targetVape),
-      vStat(s.weekVape, s.targetVape, 'ml'), (subst ? 'Dépensé cette semaine : ' : 'Dépenses de la semaine : ') + this.fmtEur(weekSpendL) + ' (' + plural(weekBottles, 'flacon', 'flacons') + ')', fq));
+      vStat(s.weekVape, s.targetVape, 'ml'), (subst ? 'Dépensé cette semaine : ' : 'Dépenses de la semaine : ') + this.fmtEur(weekSpendL) + ' (' + plural(weekBottles, 'flacon', 'flacons') + ')', fq, s.vapeQty));
     if (podOn) weekCards.push(mkWeekCard('Vape · pods', s.daysPods, s.podQty * 7, s.targetPods, vGoal(s.targetPods),
-      vStat(s.weekPods, s.targetPods, 'pods'), (subst ? 'Dépensé cette semaine : ' : 'Dépenses de la semaine : ') + this.fmtEur(weekSpendP), fq));
+      vStat(s.weekPods, s.targetPods, 'pods'), (subst ? 'Dépensé cette semaine : ' : 'Dépenses de la semaine : ') + this.fmtEur(weekSpendP), fq, s.podQty));
 
     const mkItems = (rows, streak) => rows.map((r) => {
       const ok = streak >= r[1];

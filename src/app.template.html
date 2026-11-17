@@ -500,15 +500,17 @@
 <div style="{{ wc.barStyle }}"></div>
 </div>
 <span style="font-size: 14px; color: #55605A">{{ wc.status }}</span>
-<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; height: 112px; align-items: end; margin-top: 4px">
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); column-gap: 6px; margin-top: 4px">
 <sc-for list="{{ wc.days }}" as="d" hint-placeholder-count="7">
-<div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%">
-<span style="font-size: 12px; font-weight: 600; color: #16201B">{{ d.val }}</span>
-<div style="{{ d.barStyle }}"></div>
+<div style="display: flex; flex-direction: column; align-items: center; height: 116px">
 <span style="{{ d.labelStyle }}">{{ d.label }}</span>
+<div style="align-self: stretch; height: 1.5px; margin: 5px -3px 0; background: #CFD5CC"></div>
+<div style="{{ d.barStyle }}"></div>
+<span style="{{ d.valStyle }}">{{ d.val }}</span>
 </div>
 </sc-for>
 </div>
+<div style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: #55605A"><span>0</span><span style="width: 16px; height: 8px; border-radius: 2px; background: #1D9E75"></span><span style="width: 16px; height: 8px; border-radius: 2px; background: #97C459"></span><span style="width: 16px; height: 8px; border-radius: 2px; background: #EF9F27"></span><span style="width: 16px; height: 8px; border-radius: 2px; background: #D85A30"></span><span style="width: 16px; height: 8px; border-radius: 2px; background: #E24B4A"></span><span>au-delà de ton habitude</span></div>
 <span style="font-size: 15px; font-weight: 600; color: #1E6F52">{{ wc.freeDays }}</span>
 </div>
 </sc-for>
