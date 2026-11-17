@@ -1,6 +1,6 @@
 // Service worker de Pure Health : l'app fonctionne hors connexion.
 // La version change à chaque build, ce qui installe automatiquement la mise à jour.
-const CACHE = 'purehealth-457156fc586c';
+const CACHE = 'purehealth-5ea0ec6e0b2c';
 const ASSETS = ["./","./app.js","./fonts.css","./fonts/inter-latin-400-normal.woff2","./fonts/inter-latin-500-normal.woff2","./fonts/inter-latin-600-normal.woff2","./fonts/inter-latin-700-normal.woff2","./fonts/space-grotesk-latin-500-normal.woff2","./fonts/space-grotesk-latin-700-normal.woff2","./icons/apple-touch-icon.png","./icons/favicon.svg","./icons/icon-192.png","./icons/icon-512.png","./icons/maskable-512.png","./index.html","./manifest.webmanifest"];
 
 self.addEventListener('install', (event) => {

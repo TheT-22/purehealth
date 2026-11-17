@@ -85,6 +85,8 @@ await build({
   target: ['es2018', 'safari13'],
   outfile: join(OUT, 'app.js'),
   logLevel: 'warning',
+  // Date et heure de la version, affichées dans les réglages
+  define: { __BUILD__: JSON.stringify(new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })) },
 });
 
 // 3. Statiques et polices

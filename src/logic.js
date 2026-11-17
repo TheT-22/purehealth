@@ -665,7 +665,8 @@ class Component extends DCLogic {
     });
     const vd0 = this.dateOf(vw, 0), vd6 = this.dateOf(vw, 6);
     const viewWeekLabel = 'Semaine ' + (vw + 1) + ' · ' + vd0.getDate() + (vd0.getMonth() !== vd6.getMonth() ? ' ' + monthNames[vd0.getMonth()] : '') + ' – ' + vd6.getDate() + ' ' + monthNames[vd6.getMonth()];
-    const arrowStyle = (ok) => 'width: 44px; height: 44px; padding: 0; border: none; border-radius: 12px; background: ' + (ok ? '#E7EAE4' : 'transparent') + '; font-size: 24px; line-height: 1; color: #1E6F52; cursor: ' + (ok ? 'pointer' : 'default') + '; visibility: ' + (ok ? 'visible' : 'hidden') + ';';
+    const arrowStyle = (ok) => 'width: 44px; height: 44px; padding: 0; border: none; border-radius: 12px; font-size: 24px; line-height: 1; cursor: ' + (ok ? 'pointer' : 'default') + '; '
+      + (ok ? 'background: #E7EAE4; color: #1E6F52;' : 'background: #F0F2EE; color: #C9CEC8;');
     const daily = this.dailyBenefit(s);
     const facts = [];
     const personal = daily.title !== 'Le savais-tu ?';
@@ -969,6 +970,7 @@ class Component extends DCLogic {
       logoBg: s.menuOpen ? '#E3F0EA' : 'transparent',
       toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
       closeMenu: () => this.setState({ menuOpen: false }),
+      appVersion: 'Version du ' + (typeof __BUILD__ !== 'undefined' ? __BUILD__ : 'développement'),
       menuItems: (() => {
         const names = [].concat(s.tabac ? ['Tabac'] : [], s.alcool ? ['Alcool'] : [], s.vape ? ['Vape'] : []);
         const items = [{ label: 'Produits suivis', sub: names.join(', '), pick: () => this.openEdit('choose') }];
