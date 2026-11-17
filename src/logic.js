@@ -142,6 +142,14 @@ class Component extends DCLogic {
       { tag: 'Alcool', title: 'Muscles', text: "Beaucoup d'alcool après le sport réduit la construction musculaire d'environ un quart, même avec des protéines." },
       { tag: 'Alcool', title: 'Le lendemain', text: "Le soulagement d'un verre le soir peut se payer en anxiété le lendemain." }
     );
+    if (s.vape) out.push(
+      { tag: 'Vape', title: 'Le manque', text: 'Les envies de nicotine sont les plus fortes les premiers jours, puis s’atténuent nettement en 2 à 4 semaines.' },
+      { tag: 'Vape', title: 'Baisser le dosage', text: 'Réduire le taux de nicotine petit à petit permet de diminuer sans ressentir un manque brutal.' },
+      { tag: 'Vape', title: 'Cœur', text: 'La nicotine accélère le pouls et fait monter la tension : chaque bouffée en moins soulage ton cœur.' },
+      { tag: 'Vape', title: 'Sommeil', text: 'La nicotine est un stimulant : vapoter le soir peut retarder l’endormissement.' },
+      { tag: 'Vape', title: 'Moins nocive, pas inoffensive', text: 'La vape expose à bien moins de substances toxiques que la cigarette, mais la nicotine reste très addictive.' }
+    );
+    if (!out.length) out.push({ tag: 'Le savais-tu ?', title: 'Chaque jour compte', text: 'Réduire, même un peu, c’est déjà un progrès pour ta santé et ton budget.' });
     return out;
   }
 
@@ -701,7 +709,8 @@ class Component extends DCLogic {
         labelStyle: 'font-size: 15px; color: ' + col + ';'
       };
     };
-    const weekImpact = [mkImp(sgMoney, true), mkImp(sgMin, false)];
+    // Temps de vie : non chiffré pour la vape seule
+    const weekImpact = (s.tabac || s.alcool) ? [mkImp(sgMoney, true), mkImp(sgMin, false)] : [mkImp(sgMoney, true)];
     const weekOver = sgMoney < 0 || sgMin < 0;
     let totMV = 0, totNV = 0, totV = 0;
     const totBottlesAll = hist.reduce((acc, h) => acc + (h.daysBottles || []).reduce((x, y) => x + y, 0), 0) + s.daysBottles.reduce((x, y) => x + y, 0);
@@ -762,7 +771,7 @@ class Component extends DCLogic {
         headStyle: 'font-size: 14px; font-weight: 600; color: ' + (ok ? '#FFFFFF' : '#55605A') + ';',
         noteStyle: 'font-size: 14px; line-height: 1.45; color: ' + (ok ? '#FFFFFF' : '#55605A') + ';',
         note: ok ? note : (note ? note + ' ' : '') + "Les moments plus difficiles comptent aussi : c'est ton vrai parcours, et il peut remonter dès maintenant.",
-        items: [it(money, true), it(minutes, false)]
+        items: (s.tabac || s.alcool) ? [it(money, true), it(minutes, false)] : [it(money, true)]
       };
     };
     const allHero = hero(totSM, totSMin, '', '');
@@ -1147,7 +1156,7 @@ class Component extends DCLogic {
       weekImpact: weekImpact, weekOver: weekOver,
       cigWeekMini: pastW ? ('Semaine ' + (sw + 1) + ' : ' + pastW.cigs + ' / ' + pastW.tc) : 'Semaine : ' + s.weekCigs + (s.quitTabac ? ' · objectif 0' : (s.pct === 0 ? ' · habitude ' + s.targetCigs : ' / ' + s.targetCigs)),
       drinkWeekMini: pastW ? ('Semaine ' + (sw + 1) + ' : ' + pastW.drinks + ' / ' + pastW.td) : 'Semaine : ' + s.weekDrinks + (s.quitAlcool ? ' · objectif 0' : (s.pct === 0 ? ' · habitude ' + s.targetDrinks : ' / ' + s.targetDrinks)),
-      weekSoFar: this.fmtEur(Math.abs(sgMoney)) + (sgMoney >= 0 ? ' économisés' : ' dépensés en plus') + ' · ' + this.fmtTime(Math.abs(sgMin)) + (sgMin >= 0 ? ' de vie épargnée' : ' de vie perdue'),
+      weekSoFar: this.fmtEur(Math.abs(sgMoney)) + (sgMoney >= 0 ? ' économisés' : ' dépensés en plus') + ((s.tabac || s.alcool) ? ' · ' + this.fmtTime(Math.abs(sgMin)) + (sgMin >= 0 ? ' de vie épargnée' : ' de vie perdue') : ''),
       weekSoFarStyle: 'font-size: 17px; font-weight: 600; color: ' + (sgMoney < 0 || sgMin < 0 ? '#B42318' : '#14513B') + ';',
       allMoney: this.fmtEur(Math.max(0, totSM)), allTime: this.fmtTime(Math.max(0, totSMin)),
       allHero: allHero, weekHero: weekHero,
