@@ -1,0 +1,708 @@
+<div style="width: 100%; max-width: 560px; height: 100vh; height: 100dvh; margin: 0 auto; box-sizing: border-box; background: #F5F6F2; color: #16201B; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; position: relative">
+
+<sc-if value="{{ showNav }}" hint-placeholder-val="{{ false }}">
+<div style="padding: calc(env(safe-area-inset-top) + 14px) 20px 12px; background: #F5F6F2; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #E1E4DE">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<div style="display: flex; align-items: center; gap: 10px">
+<button type="button" aria-label="Réglages" aria-expanded="{{ menuExpanded }}" onClick="{{ toggleMenu }}" style="display: flex; align-items: center; gap: 2px; height: 44px; padding: 0 6px 0 2px; border: none; border-radius: 12px; background: {{ logoBg }}; cursor: pointer"><svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#14513B"></rect><path d="M17 26h22l-3 15a8 8 0 0 1-16 0z" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"></path><path d="M28 49v15M21 65h14" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"></path><rect x="46" y="26" width="9" height="40" rx="2" fill="#FFFFFF"></rect><rect x="46" y="53" width="9" height="13" rx="2" fill="#E89B4F"></rect><rect x="66" y="18" width="6" height="9" rx="2" fill="#FFFFFF"></rect><rect x="63" y="25" width="12" height="42" rx="5" fill="#FFFFFF"></rect><rect x="66" y="34" width="6" height="11" rx="2" fill="#14513B"></rect><path d="M14 80L86 22" fill="none" stroke="#14513B" stroke-width="13" stroke-linecap="round"></path><path d="M14 80L86 22" fill="none" stroke="#9FD0B9" stroke-width="6" stroke-linecap="round"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="#55605A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<sc-if value="{{ tabac }}" hint-placeholder-val="{{ true }}">
+<span role="img" aria-label="{{ cigRunAria }}" style="{{ cigChipStyle }}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="13" width="15" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="2"></rect><path d="M20 12v6M3 3l18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg><span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; line-height: 1">{{ cigRunNum }}</span><span style="font-size: 13px; font-weight: 600">{{ cigRunUnit }}</span></span>
+</sc-if>
+<sc-if value="{{ alcool }}" hint-placeholder-val="{{ false }}">
+<span role="img" aria-label="{{ drinkRunAria }}" style="{{ drinkChipStyle }}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10l-1 7a4 4 0 0 1-8 0zM12 14v6M8 21h8M3 3l18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; line-height: 1">{{ drinkRunNum }}</span><span style="font-size: 13px; font-weight: 600">{{ drinkRunUnit }}</span></span>
+</sc-if>
+<sc-if value="{{ showVapeChip }}" hint-placeholder-val="{{ false }}">
+<span role="img" aria-label="{{ vapeRunAria }}" style="{{ vapeChipStyle }}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"></rect><path d="M3 3l18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg><span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; line-height: 1">{{ vapeRunNum }}</span><span style="font-size: 13px; font-weight: 600">{{ vapeRunUnit }}</span></span>
+</sc-if>
+</div>
+<button type="button" aria-label="Envie forte" onClick="{{ goSos }}" style="{{ sosBtnStyle }}">
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"></path></svg>
+<sc-if value="{{ sosText }}" hint-placeholder-val="{{ true }}"><span>Envie forte</span></sc-if>
+</button>
+</div>
+<div role="tablist" aria-label="Suivi" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #E7EAE4; border-radius: 14px">
+<button type="button" role="tab" aria-selected="{{ tabTodaySel }}" onClick="{{ goToday }}" style="{{ tabTodayStyle }}">Jour</button>
+<button type="button" role="tab" aria-selected="{{ tabWeekSel }}" onClick="{{ goWeek }}" style="{{ tabWeekStyle }}">Semaine</button>
+<button type="button" role="tab" aria-selected="{{ tabGainsSel }}" onClick="{{ goGains }}" style="{{ tabGainsStyle }}">Progrès</button>
+</div>
+</div>
+</sc-if>
+
+<div style="{{ contentStyle }}">
+
+<!-- ÉCRAN 1 : ACCUEIL -->
+<sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 28px; flex: 1">
+<div style="display: flex; align-items: center; gap: 10px; margin-top: 24px">
+<svg width="44" height="44" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#14513B"></rect><path d="M17 26h22l-3 15a8 8 0 0 1-16 0z" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"></path><path d="M28 49v15M21 65h14" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"></path><rect x="46" y="26" width="9" height="40" rx="2" fill="#FFFFFF"></rect><rect x="46" y="53" width="9" height="13" rx="2" fill="#E89B4F"></rect><rect x="66" y="18" width="6" height="9" rx="2" fill="#FFFFFF"></rect><rect x="63" y="25" width="12" height="42" rx="5" fill="#FFFFFF"></rect><rect x="66" y="34" width="6" height="11" rx="2" fill="#14513B"></rect><path d="M14 80L86 22" fill="none" stroke="#14513B" stroke-width="13" stroke-linecap="round"></path><path d="M14 80L86 22" fill="none" stroke="#9FD0B9" stroke-width="6" stroke-linecap="round"></path></svg>
+<span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -0.5px">Pure Health</span>
+</div>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 34px; line-height: 1.12; letter-spacing: -0.6px">Réduis à ton rythme. Chaque cigarette ou verre en moins compte.</h1>
+<p style="margin: 0; font-size: 16px; line-height: 1.5; color: #55605A">Pure Health ne t'impose pas d'arrêter du jour au lendemain. Tu fixes un rythme, on te montre chaque semaine ce que tu as gagné.</p>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; gap: 12px; align-items: flex-start">
+<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M5 13l4 4L19 7" fill="none" stroke="#1E6F52" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-size: 15px; line-height: 1.45">Des objectifs par paliers, jamais d'arrêt brutal imposé</span>
+</div>
+<div style="display: flex; gap: 12px; align-items: flex-start">
+<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M5 13l4 4L19 7" fill="none" stroke="#1E6F52" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-size: 15px; line-height: 1.45">Tes gains en euros et en temps de vie, chaque semaine</span>
+</div>
+<div style="display: flex; gap: 12px; align-items: flex-start">
+<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M5 13l4 4L19 7" fill="none" stroke="#1E6F52" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-size: 15px; line-height: 1.45">Un écart ne remet jamais tes progrès à zéro</span>
+</div>
+</div>
+<div style="flex: 1"></div>
+<p style="margin: 0; font-size: 13px; line-height: 1.45; color: #55605A">Les chiffres affichés sont des estimations moyennes issues d'études scientifiques. Ils ne remplacent pas l'avis d'un professionnel de santé. Tes données restent sur ton téléphone.</p>
+<button type="button" onClick="{{ goChoose }}" style="height: 56px; border: none; border-radius: 16px; background: #1E6F52; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer">Commencer</button>
+</div>
+</sc-if>
+
+<!-- ÉCRAN 2 : CHOIX -->
+<sc-if value="{{ isChoose }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 20px; flex: 1">
+<button type="button" onClick="{{ backFromChoose }}" style="align-self: flex-start; height: 44px; padding: 0 4px; border: none; background: none; color: #55605A; font-size: 15px; cursor: pointer">{{ backLabel }}</button>
+<span style="font-size: 13px; font-weight: 600; color: #1E6F52; letter-spacing: 0.4px">{{ stepL1 }}</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">Que veux-tu réduire ?</h2>
+<p style="margin: 0; font-size: 15px; color: #55605A">Tu peux en choisir plusieurs.</p>
+<button type="button" aria-pressed="{{ tabacPressed }}" onClick="{{ toggleTabac }}" style="{{ tabacCardStyle }}">
+<span style="display: flex; flex-direction: column; gap: 4px; text-align: left">
+<span style="font-size: 18px; font-weight: 600">Le tabac</span>
+<span style="font-size: 14px; color: #55605A">Cigarettes, tabac à rouler</span>
+</span>
+<span style="font-size: 22px; font-weight: 700; color: #1E6F52">{{ tabacMark }}</span>
+</button>
+<button type="button" aria-pressed="{{ alcoolPressed }}" onClick="{{ toggleAlcool }}" style="{{ alcoolCardStyle }}">
+<span style="display: flex; flex-direction: column; gap: 4px; text-align: left">
+<span style="font-size: 18px; font-weight: 600">L'alcool</span>
+<span style="font-size: 14px; color: #55605A">Bière, vin, alcools forts</span>
+</span>
+<span style="font-size: 22px; font-weight: 700; color: #1E6F52">{{ alcoolMark }}</span>
+</button>
+<button type="button" aria-pressed="{{ vapePressed }}" onClick="{{ toggleVape }}" style="{{ vapeChooseStyle }}">
+<span style="display: flex; flex-direction: column; gap: 4px; text-align: left">
+<span style="font-size: 18px; font-weight: 600">La vape</span>
+<span style="font-size: 14px; color: #55605A">Cigarette électronique, liquide ou pods</span>
+</span>
+<span style="font-size: 22px; font-weight: 700; color: #1E6F52">{{ vapeMark }}</span>
+</button>
+<div style="flex: 1"></div>
+<button type="button" onClick="{{ continueChoose }}" style="{{ continueStyle }}">{{ continueLabel }}</button>
+</div>
+</sc-if>
+
+<!-- ÉCRAN 3 : TABAC -->
+<sc-if value="{{ isTabac }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 20px; flex: 1">
+<button type="button" onClick="{{ backFromTabac }}" style="align-self: flex-start; height: 44px; padding: 0 4px; border: none; background: none; color: #55605A; font-size: 15px; cursor: pointer">{{ backLabel }}</button>
+<span style="font-size: 13px; font-weight: 600; color: #1E6F52; letter-spacing: 0.4px">{{ stepL2 }}</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">Ton profil fumeur</h2>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; font-weight: 600">Fumes-tu tous les jours ?</span>
+<sc-for list="{{ smokeFreqs }}" as="f" hint-placeholder-count="3">
+<button type="button" aria-pressed="{{ f.pressed }}" onClick="{{ f.pick }}" style="{{ f.style }}">{{ f.label }}</button>
+</sc-for>
+</div>
+<sc-if value="{{ smokeNotDaily }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; font-weight: 600">Combien de jours par semaine, en moyenne ?</span>
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{ smokeDayPills }}" as="d" hint-placeholder-count="6">
+<button type="button" aria-pressed="{{ d.pressed }}" onClick="{{ d.pick }}" style="{{ d.style }}">{{ d.label }}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="cigs-occ" style="font-size: 15px; font-weight: 600">{{ cigQtyLabel }}</label>
+<input id="cigs-occ" type="text" inputmode="numeric" placeholder="0" value="{{ cigsText }}" onChange="{{ setCigsPerOcc }}" style="height: 56px; box-sizing: border-box; padding: 0 16px; border: 1.5px solid #CFD5CC; border-radius: 14px; background: #FFFFFF; font-size: 22px; font-weight: 600; color: #16201B">
+<div style="display: flex; gap: 8px">
+<sc-for list="{{ cigChips }}" as="chip" hint-placeholder-count="3">
+<button type="button" onClick="{{ chip.pick }}" style="height: 44px; flex: 1; border: 1.5px solid #CFD5CC; border-radius: 999px; background: #FFFFFF; font-size: 15px; color: #16201B; cursor: pointer">{{ chip.label }}</button>
+</sc-for>
+</div>
+<span style="font-size: 14px; color: #55605A">Soit environ <strong style="color: #16201B">{{ baseCigs }} cigarettes par semaine</strong></span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="pack-price" style="font-size: 15px; font-weight: 600">Prix de ton paquet de 20 (€)</label>
+<input id="pack-price" type="text" inputmode="decimal" placeholder="12,47" value="{{ packText }}" onChange="{{ setPackPrice }}" style="height: 56px; box-sizing: border-box; padding: 0 16px; border: 1.5px solid #CFD5CC; border-radius: 14px; background: #FFFFFF; font-size: 22px; font-weight: 600; color: #16201B">
+<span style="font-size: 14px; color: #55605A">Prix moyen en France : 12,47 € (novembre 2026)</span>
+</div>
+<div style="flex: 1"></div>
+<button type="button" onClick="{{ nextFromTabac }}" style="height: 56px; border: none; border-radius: 16px; background: #1E6F52; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer">{{ continueLabel }}</button>
+</div>
+</sc-if>
+
+<!-- ÉCRAN 4 : ALCOOL -->
+<sc-if value="{{ isAlcool }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 20px; flex: 1">
+<button type="button" onClick="{{ backFromAlcool }}" style="align-self: flex-start; height: 44px; padding: 0 4px; border: none; background: none; color: #55605A; font-size: 15px; cursor: pointer">{{ backLabel }}</button>
+<span style="font-size: 13px; font-weight: 600; color: #1E6F52; letter-spacing: 0.4px">{{ stepL3 }}</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">Ton profil de consommation d'alcool</h2>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; font-weight: 600">Bois-tu tous les jours ?</span>
+<sc-for list="{{ drinkFreqs }}" as="f" hint-placeholder-count="4">
+<button type="button" aria-pressed="{{ f.pressed }}" onClick="{{ f.pick }}" style="{{ f.style }}">{{ f.label }}</button>
+</sc-for>
+</div>
+<sc-if value="{{ drinkNotDaily }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; font-weight: 600">Combien de jours par semaine, en moyenne ?</span>
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{ drinkDayPills }}" as="d" hint-placeholder-count="6">
+<button type="button" aria-pressed="{{ d.pressed }}" onClick="{{ d.pick }}" style="{{ d.style }}">{{ d.label }}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="drinks-occ" style="font-size: 15px; font-weight: 600">{{ drinkQtyLabel }}</label>
+<input id="drinks-occ" type="text" inputmode="numeric" placeholder="0" value="{{ drinksText }}" onChange="{{ setDrinksPerOcc }}" style="height: 56px; box-sizing: border-box; padding: 0 16px; border: 1.5px solid #CFD5CC; border-radius: 14px; background: #FFFFFF; font-size: 22px; font-weight: 600; color: #16201B">
+<span style="font-size: 14px; color: #55605A">Soit environ <strong style="color: #16201B">{{ baseDrinks }} verres par semaine</strong></span>
+</div>
+<sc-if value="{{ bingeRisk }}" hint-placeholder-val="{{ false }}">
+<div style="background: #FBEEDC; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 15px; font-weight: 600; color: #7A3A08">6 verres ou plus en une occasion</span>
+<span style="font-size: 14px; line-height: 1.45; color: #5C2C06">C'est ce qu'on appelle une alcoolisation ponctuelle importante. Réduire le nombre de verres par soirée compte autant que le nombre de soirées.</span>
+</div>
+</sc-if>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px; font-weight: 600">Bière</span>
+<span style="font-size: 12px; color: #55605A">25 cl à 5 %</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px; font-weight: 600">Vin</span>
+<span style="font-size: 12px; color: #55605A">10 cl à 12 %</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px; font-weight: 600">Alcool fort</span>
+<span style="font-size: 12px; color: #55605A">3 cl à 40 %</span>
+</div>
+</div>
+<span style="font-size: 13px; color: #55605A; margin-top: -8px">Chacun = 1 verre standard (10 g d'alcool). Une pinte de bière forte en vaut 2 à 3.</span>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="drink-price" style="font-size: 15px; font-weight: 600">Prix moyen d'un verre (€)</label>
+<input id="drink-price" type="text" inputmode="decimal" placeholder="4" value="{{ priceText }}" onChange="{{ setDrinkPrice }}" style="height: 56px; box-sizing: border-box; padding: 0 16px; border: 1.5px solid #CFD5CC; border-radius: 14px; background: #FFFFFF; font-size: 22px; font-weight: 600; color: #16201B">
+</div>
+<sc-if value="{{ heavyDrinker }}" hint-placeholder-val="{{ false }}">
+<div style="background: #FBEEDC; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 15px; font-weight: 600; color: #7A3A08">Consommation élevée</span>
+<span style="font-size: 14px; line-height: 1.45; color: #5C2C06">Avant de réduire fortement, parles-en à un médecin : un sevrage trop rapide peut être dangereux. Alcool Info Service : <a href="tel:0980980930" style="color: #5C2C06; font-weight: 600">0 980 980 930</a></span>
+</div>
+</sc-if>
+<div style="flex: 1"></div>
+<button type="button" onClick="{{ nextFromAlcool }}" style="height: 56px; border: none; border-radius: 16px; background: #1E6F52; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer">{{ continueLabel }}</button>
+</div>
+</sc-if>
+
+<!-- ÉCRAN 4B : VAPE -->
+<sc-if value="{{ isVape }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 20px; flex: 1">
+<button type="button" onClick="{{ backFromVape }}" style="align-self: flex-start; height: 44px; padding: 0 4px; border: none; background: none; color: #55605A; font-size: 15px; cursor: pointer">{{ backLabel }}</button>
+<span style="font-size: 13px; font-weight: 600; color: #1E6F52; letter-spacing: 0.4px">{{ stepL5 }}</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">Ton profil vape</h2>
+<sc-if value="{{ tabac }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; font-weight: 600">Utilises-tu la vape pour arrêter de fumer ?</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{ substPills }}" as="f" hint-placeholder-count="2">
+<button type="button" aria-pressed="{{ f.pressed }}" onClick="{{ f.pick }}" style="{{ f.style }}">{{ f.label }}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; font-weight: 600">Ton matériel</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{ vapeModes }}" as="f" hint-placeholder-count="3">
+<button type="button" aria-pressed="{{ f.pressed }}" onClick="{{ f.pick }}" style="{{ f.style }}">{{ f.label }}</button>
+</sc-for>
+</div>
+</div>
+<sc-if value="{{ vapeLiquidOn }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 14px; padding: 16px; background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 18px">
+<span style="font-size: 16px; font-weight: 700">Liquide (flacons)</span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="vape-qty" style="font-size: 14px; font-weight: 600">Millilitres par jour</label>
+<input id="vape-qty" type="text" inputmode="decimal" placeholder="0" value="{{ vapeText }}" onChange="{{ setVapeQty }}" style="height: 52px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #CFD5CC; border-radius: 12px; background: #FFFFFF; font-size: 20px; font-weight: 600; color: #16201B">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="vape-nic" style="font-size: 14px; font-weight: 600">Dosage en nicotine (mg/ml)</label>
+<input id="vape-nic" type="text" inputmode="decimal" placeholder="0" value="{{ nicText }}" onChange="{{ setNic }}" style="height: 52px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #CFD5CC; border-radius: 12px; background: #FFFFFF; font-size: 20px; font-weight: 600; color: #16201B">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bottle-size" style="font-size: 14px; font-weight: 600">Contenance de tes flacons (ml)</label>
+<input id="bottle-size" type="text" inputmode="numeric" placeholder="10" value="{{ bottleSizeText }}" onChange="{{ setBottleSize }}" style="height: 52px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #CFD5CC; border-radius: 12px; background: #FFFFFF; font-size: 20px; font-weight: 600; color: #16201B">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{ bottleChips }}" as="bc" hint-placeholder-count="4">
+<button type="button" aria-pressed="{{ bc.pressed }}" onClick="{{ bc.pick }}" style="{{ bc.style }}">{{ bc.label }}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="vape-price" style="font-size: 14px; font-weight: 600">{{ bottlePriceLabel }}</label>
+<input id="vape-price" type="text" inputmode="decimal" placeholder="0" value="{{ vapePriceText }}" onChange="{{ setVapePrice }}" style="height: 52px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #CFD5CC; border-radius: 12px; background: #FFFFFF; font-size: 20px; font-weight: 600; color: #16201B">
+</div>
+<span style="font-size: 13px; line-height: 1.4; color: #55605A">Chaque fois que tu entames un flacon, tu pourras le noter : tes dépenses seront calculées sur tes flacons réels.</span>
+</div>
+</sc-if>
+<sc-if value="{{ vapePodsOn }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 14px; padding: 16px; background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 18px">
+<span style="font-size: 16px; font-weight: 700">Pods (cartouches)</span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pod-qty" style="font-size: 14px; font-weight: 600">Pods par jour</label>
+<input id="pod-qty" type="text" inputmode="decimal" placeholder="0" value="{{ podText }}" onChange="{{ setPodQty }}" style="height: 52px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #CFD5CC; border-radius: 12px; background: #FFFFFF; font-size: 20px; font-weight: 600; color: #16201B">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pod-nic" style="font-size: 14px; font-weight: 600">Dosage en nicotine des pods (mg/ml)</label>
+<input id="pod-nic" type="text" inputmode="decimal" placeholder="0" value="{{ podNicText }}" onChange="{{ setPodNic }}" style="height: 52px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #CFD5CC; border-radius: 12px; background: #FFFFFF; font-size: 20px; font-weight: 600; color: #16201B">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pod-price" style="font-size: 14px; font-weight: 600">Prix d'un pod (€)</label>
+<input id="pod-price" type="text" inputmode="decimal" placeholder="0" value="{{ podPriceText }}" onChange="{{ setPodPrice }}" style="height: 52px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #CFD5CC; border-radius: 12px; background: #FFFFFF; font-size: 20px; font-weight: 600; color: #16201B">
+</div>
+<span style="font-size: 13px; line-height: 1.4; color: #55605A">On compte 2 ml par pod, la contenance maximale autorisée en Europe.</span>
+</div>
+</sc-if>
+<span style="font-size: 14px; color: #55605A">Soit environ <strong style="color: #16201B">{{ vapeNicWeek }} mg de nicotine par semaine</strong></span>
+<sc-if value="{{ vapeSubstOn }}" hint-placeholder-val="{{ false }}">
+<div style="background: #E3F0EA; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 15px; font-weight: 600; color: #14513B">La vape comme aide à l'arrêt</span>
+<span style="font-size: 14px; line-height: 1.45; color: #14513B">Tes cigarettes évitées continuent de compter. Ce que tu dépenses en vape est retiré de tes économies, pour afficher ce que tu gagnes vraiment. Vapoter ne casse jamais ta série sans cigarette.</span>
+</div>
+</sc-if>
+<div style="flex: 1"></div>
+<button type="button" onClick="{{ nextFromVape }}" style="height: 56px; border: none; border-radius: 16px; background: #1E6F52; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer">{{ continueLabel }}</button>
+</div>
+</sc-if>
+
+<!-- ÉCRAN 5 : RYTHME -->
+<sc-if value="{{ isPalier }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 18px; flex: 1">
+<button type="button" onClick="{{ backFromPalier }}" style="align-self: flex-start; height: 44px; padding: 0 4px; border: none; background: none; color: #55605A; font-size: 15px; cursor: pointer">{{ backLabel }}</button>
+<span style="font-size: 13px; font-weight: 600; color: #1E6F52; letter-spacing: 0.4px">{{ stepL4 }}</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">À quel rythme veux-tu réduire ?</h2>
+<sc-for list="{{ paces }}" as="pace" hint-placeholder-count="3">
+<button type="button" aria-pressed="{{ pace.pressed }}" onClick="{{ pace.pick }}" style="{{ pace.style }}">
+<span style="display: flex; flex-direction: column; gap: 3px; text-align: left">
+<span style="font-size: 17px; font-weight: 600">{{ pace.label }}</span>
+<span style="font-size: 14px; color: #55605A">{{ pace.sub }}</span>
+</span>
+<span style="font-size: 20px; font-weight: 700; color: #1E6F52">{{ pace.mark }}</span>
+</button>
+</sc-for>
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 14px; font-weight: 600; color: #55605A">Aperçu de tes paliers</span>
+<sc-for list="{{ previewRows }}" as="row" hint-placeholder-count="2">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+<span style="font-size: 15px">{{ row.label }}</span>
+<span style="font-size: 15px; font-weight: 600">{{ row.value }}</span>
+</div>
+</sc-for>
+</div>
+<div style="background: #E3F0EA; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 14px; font-weight: 600; color: #14513B">Conseils adaptés à ton profil</span>
+<sc-for list="{{ profileTips }}" as="tip" hint-placeholder-count="2">
+<span style="font-size: 15px; line-height: 1.45; color: #14513B">{{ tip.text }}</span>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 1.45; color: #55605A">Si tu fais mieux que ton palier, le suivant part de ta vraie consommation. Si c'est plus dur, ton palier reste le même : rien n'est perdu.</p>
+<div style="flex: 1"></div>
+<button type="button" onClick="{{ startPlan }}" style="height: 56px; border: none; border-radius: 16px; background: #1E6F52; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer">{{ startLabel }}</button>
+</div>
+</sc-if>
+
+<!-- ÉCRAN 6A : AUJOURD'HUI -->
+<sc-if value="{{ isToday }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px; color: #55605A">Semaine {{ selWeekNum }} · {{ selDateLabel }}</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">{{ selTitle }}</h2>
+</div>
+<sc-if value="{{ newBilan }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ openBilan }}" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 64px; padding: 12px 16px; border: none; border-radius: 18px; background: #1E6F52; color: #FFFFFF; text-align: left; cursor: pointer">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 700">{{ bilanNoticeTitle }}</span>
+<span style="font-size: 13px">Ton bilan est prêt</span>
+</span>
+<span style="font-size: 14px; font-weight: 600">Voir →</span>
+</button>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<button type="button" aria-label="Semaine précédente" onClick="{{ weekPrev }}" style="{{ weekPrevStyle }}">‹</button>
+<span style="font-size: 13px; font-weight: 600; color: #55605A">{{ viewWeekLabel }}</span>
+<button type="button" aria-label="Semaine suivante" onClick="{{ weekNext }}" style="{{ weekNextStyle }}">›</button>
+</div>
+<div role="tablist" aria-label="Jours" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{ dayPicker }}" as="dp" hint-placeholder-count="7">
+<button type="button" role="tab" aria-selected="{{ dp.selected }}" aria-label="{{ dp.aria }}" onClick="{{ dp.pick }}" style="{{ dp.style }}">
+<span style="font-size: 11px; font-weight: 500; opacity: 0.85">{{ dp.letter }}</span>
+<span style="font-size: 17px; font-weight: 700; line-height: 1">{{ dp.num }}</span>
+</button>
+</sc-for>
+</div>
+</div>
+
+<section aria-label="Les bienfaits, en bref" onTouchStart="{{ factTouchStart }}" onTouchEnd="{{ factTouchEnd }}" style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 16px; padding: 8px 2px; display: flex; align-items: center; gap: 2px">
+<button type="button" aria-label="Fait précédent" onClick="{{ factPrev }}" style="flex: none; width: 28px; height: 44px; padding: 0; border: none; background: none; color: #8A938D; font-size: 20px; line-height: 1; cursor: pointer">‹</button>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; color: #1E6F52">{{ factTag }} · {{ factTitle }}</span>
+<span style="flex: none; font-size: 11px; color: #55605A">{{ factCount }}</span>
+</div>
+<span style="font-size: 14px; line-height: 1.35">{{ factText }}</span>
+</div>
+<button type="button" aria-label="Fait suivant" onClick="{{ factNext }}" style="flex: none; width: 28px; height: 44px; padding: 0; border: none; background: none; color: #8A938D; font-size: 20px; line-height: 1; cursor: pointer">›</button>
+</section>
+
+<div style="{{ counterWrap }}">
+<sc-if value="{{ tabac }}" hint-placeholder-val="{{ true }}">
+<div style="{{ counterCard }}">
+<span style="font-size: 16px; font-weight: 600; text-align: center">{{ selCigLabel }}</span>
+<span style="{{ counterNum }}">{{ selCigs }}</span>
+<div style="{{ miniRow }}">
+<div style="{{ miniBarWrap }}"><div style="{{ cigBarStyle }}"></div></div>
+<span style="font-size: 13px; color: #55605A; text-align: center">{{ cigWeekMini }}</span>
+</div>
+<sc-if value="{{ notBoth }}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 14px; color: #55605A; text-align: center">{{ cigTodayHint }}</span>
+</sc-if>
+<span style="font-size: 13px; color: #55605A; text-align: center">{{ cigHabitHint }}</span>
+<div style="display: flex; gap: 10px; margin-top: 4px">
+<button type="button" aria-label="Retirer une cigarette" onClick="{{ removeCig }}" style="{{ minusBtn }}">−</button>
+<button type="button" aria-label="Ajouter une cigarette" onClick="{{ addCig }}" style="{{ plusBtn }}">{{ plusCigLabel }}</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ alcool }}" hint-placeholder-val="{{ true }}">
+<div style="{{ counterCard }}">
+<span style="font-size: 16px; font-weight: 600; text-align: center">{{ selDrinkLabel }}</span>
+<span style="{{ counterNum }}">{{ selDrinks }}</span>
+<div style="{{ miniRow }}">
+<div style="{{ miniBarWrap }}"><div style="{{ drinkBarStyle }}"></div></div>
+<span style="font-size: 13px; color: #55605A; text-align: center">{{ drinkWeekMini }}</span>
+</div>
+<sc-if value="{{ notBoth }}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 14px; color: #55605A; text-align: center">{{ drinkTodayHint }}</span>
+</sc-if>
+<span style="font-size: 13px; color: #55605A; text-align: center">{{ drinkHabitHint }}</span>
+<div style="display: flex; gap: 10px; margin-top: 4px">
+<button type="button" aria-label="Retirer un verre" onClick="{{ removeDrink }}" style="{{ minusBtn }}">−</button>
+<button type="button" aria-label="Ajouter un verre" onClick="{{ addDrink }}" style="{{ plusBtn }}">{{ plusDrinkLabel }}</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ vape }}" hint-placeholder-val="{{ false }}">
+<div style="{{ vapeCounterCard }}">
+<span style="font-size: 16px; font-weight: 600; text-align: center">{{ selVapeLabel }}</span>
+<div style="{{ vapeTrackWrap }}">
+<sc-for list="{{ vapeTracks }}" as="vt" hint-placeholder-count="1">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0">
+<sc-if value="{{ vt.showName }}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 13px; font-weight: 600; color: #55605A">{{ vt.name }}</span>
+</sc-if>
+<div style="display: flex; align-items: baseline; gap: 4px">
+<span style="{{ vt.numStyle }}">{{ vt.num }}</span>
+<span style="font-size: 15px; font-weight: 600; color: #55605A">{{ vt.unit }}</span>
+</div>
+<div style="display: flex; gap: 8px">
+<button type="button" aria-label="{{ vt.minusAria }}" onClick="{{ vt.minus }}" style="{{ vt.minusStyle }}">−</button>
+<button type="button" aria-label="{{ vt.plusAria }}" onClick="{{ vt.plus }}" style="{{ vt.plusStyle }}">{{ vt.plusLabel }}</button>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="{{ miniRow }}">
+<div style="{{ miniBarWrap }}"><div style="{{ vapeBarStyle }}"></div></div>
+<span style="font-size: 13px; color: #55605A; text-align: center">{{ vapeWeekMini }}</span>
+</div>
+<sc-if value="{{ notBoth }}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 14px; color: #55605A; text-align: center">{{ vapeTodayHint }}</span>
+</sc-if>
+<span style="font-size: 13px; color: #55605A; text-align: center">{{ vapeNicHint }}</span>
+<sc-if value="{{ vapeSubstOn }}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 12px; font-weight: 600; color: #14513B; background: #E3F0EA; padding: 4px 10px; border-radius: 999px; text-align: center">Aide à l'arrêt du tabac</span>
+</sc-if>
+<sc-if value="{{ vapeLiquid }}" hint-placeholder-val="{{ true }}">
+<div style="align-self: stretch; display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid #EDEFEA">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap">
+<span style="font-size: 14px; color: #55605A">Flacons entamés : <strong style="color: #16201B">{{ selBottles }}</strong></span>
+<div style="display: flex; gap: 6px">
+<button type="button" aria-label="Annuler un flacon entamé" onClick="{{ removeBottle }}" style="width: 44px; height: 44px; border: 1.5px solid #CFD5CC; border-radius: 12px; background: #FFFFFF; font-size: 20px; color: #16201B; cursor: pointer">−</button>
+<button type="button" aria-label="J'entame un nouveau flacon" onClick="{{ addBottle }}" style="height: 44px; padding: 0 12px; border: 1.5px solid #1E6F52; border-radius: 12px; background: #FFFFFF; font-size: 14px; font-weight: 600; color: #1E6F52; cursor: pointer">{{ bottleBtnLabel }}</button>
+</div>
+</div>
+<span style="font-size: 12px; line-height: 1.4; color: #55605A; text-align: center">{{ bottleInsight }}</span>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</div>
+
+
+</div>
+</sc-if>
+
+<!-- ÉCRAN 6B : SEMAINE -->
+<sc-if value="{{ isWeek }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px; color: #55605A">Semaine {{ weekNum }} · {{ dayLabel }}</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">Ta semaine</h2>
+</div>
+<sc-if value="{{ newBilan }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ openBilan }}" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 64px; padding: 12px 16px; border: none; border-radius: 18px; background: #1E6F52; color: #FFFFFF; text-align: left; cursor: pointer">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 700">{{ bilanNoticeTitle }}</span>
+<span style="font-size: 13px">Ton bilan est prêt</span>
+</span>
+<span style="font-size: 14px; font-weight: 600">Voir →</span>
+</button>
+</sc-if>
+
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 14px; font-weight: 600; color: #55605A">Cette semaine, par rapport à ton habitude</span>
+<sc-for list="{{ weekImpact }}" as="it" hint-placeholder-count="2">
+<div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap">
+<span style="{{ it.valueStyle }}">{{ it.value }}</span>
+<span style="{{ it.labelStyle }}">{{ it.label }}</span>
+</div>
+</sc-for>
+<sc-if value="{{ weekOver }}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 13px; line-height: 1.45; color: #55605A">Une semaine plus difficile, ça arrive. Ce qui compte, c'est la suite : chaque jour est une nouvelle occasion.</span>
+</sc-if>
+</div>
+
+<sc-if value="{{ showQuitCard }}" hint-placeholder-val="{{ false }}">
+<div style="background: #16201B; color: #FFFFFF; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700">Prêt à passer à zéro ?</span>
+<span style="font-size: 15px; line-height: 1.45">{{ quitCardText }}</span>
+<sc-for list="{{ quitOffers }}" as="q" hint-placeholder-count="1">
+<button type="button" onClick="{{ q.pick }}" style="min-height: 48px; padding: 0 14px; border: none; border-radius: 14px; background: #FFFFFF; color: #16201B; font-size: 15px; font-weight: 600; cursor: pointer">{{ q.label }}</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-for list="{{ weekCards }}" as="wc" hint-placeholder-count="1">
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<span style="font-size: 16px; font-weight: 600">{{ wc.title }}</span>
+<span style="font-size: 14px; color: #55605A">{{ wc.goal }}</span>
+</div>
+<div style="display: flex; align-items: baseline; gap: 8px">
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 40px; font-weight: 700; line-height: 1">{{ wc.total }}</span>
+<span style="font-size: 15px; color: #55605A">cette semaine</span>
+</div>
+<div style="height: 10px; border-radius: 999px; background: #EDEFEA; overflow: hidden">
+<div style="{{ wc.barStyle }}"></div>
+</div>
+<span style="font-size: 14px; color: #55605A">{{ wc.status }}</span>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; height: 112px; align-items: end; margin-top: 4px">
+<sc-for list="{{ wc.days }}" as="d" hint-placeholder-count="7">
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%">
+<span style="font-size: 12px; font-weight: 600; color: #16201B">{{ d.val }}</span>
+<div style="{{ d.barStyle }}"></div>
+<span style="{{ d.labelStyle }}">{{ d.label }}</span>
+</div>
+</sc-for>
+</div>
+<span style="font-size: 15px; font-weight: 600; color: #1E6F52">{{ wc.freeDays }}</span>
+</div>
+</sc-for>
+
+<button type="button" onClick="{{ editPalier }}" style="min-height: 52px; border: 1.5px solid #CFD5CC; border-radius: 16px; background: #FFFFFF; font-size: 15px; font-weight: 600; color: #16201B; cursor: pointer">Changer mon rythme ou mon objectif</button>
+<sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ goBilan }}" style="min-height: 52px; border: 1.5px solid #CFD5CC; border-radius: 16px; background: #FFFFFF; font-size: 15px; font-weight: 600; color: #16201B; cursor: pointer">Voir le bilan de la semaine dernière</button>
+</sc-if>
+</div>
+</sc-if>
+
+<!-- ÉCRAN 6C : GAINS -->
+<sc-if value="{{ isGains }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">Tes progrès</h2>
+
+<div style="{{ allHero.box }}">
+<span style="{{ allHero.headStyle }}">Depuis le début</span>
+<sc-for list="{{ allHero.items }}" as="it" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="{{ it.valueStyle }}">{{ it.value }}</span>
+<span style="{{ it.labelStyle }}">{{ it.label }}</span>
+</div>
+</sc-for>
+<span style="{{ allHero.noteStyle }}">{{ allHero.note }}</span>
+</div>
+
+<sc-if value="{{ showSplit }}" hint-placeholder-val="{{ false }}">
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 14px; font-weight: 600; color: #55605A">Détail par produit, depuis le début</span>
+<sc-for list="{{ splitRows }}" as="r" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 4px; padding-top: 12px; border-top: 1px solid #EDEFEA">
+<span style="font-size: 15px; font-weight: 600">{{ r.title }}</span>
+<span style="{{ r.moneyStyle }}">{{ r.money }}</span>
+<span style="{{ r.timeStyle }}">{{ r.time }}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{ statTiles }}" as="t" hint-placeholder-count="4">
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px">
+<span style="{{ t.valueStyle }}">{{ t.value }}</span>
+<span style="font-size: 13px; line-height: 1.35; color: #55605A">{{ t.label }}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="background: #E3F0EA; border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 14px; font-weight: 600; color: #14513B">Cette semaine, à ce stade</span>
+<span style="{{ weekSoFarStyle }}">{{ weekSoFar }}</span>
+<span style="font-size: 13px; color: #14513B">Par rapport à ton habitude sur le même nombre de jours.</span>
+</div>
+
+<sc-for list="{{ benefitGroups }}" as="bg" hint-placeholder-count="1">
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 16px; font-weight: 600">{{ bg.title }}</span>
+<span style="font-size: 13px; color: #55605A">{{ bg.sub }}</span>
+</div>
+<sc-for list="{{ bg.items }}" as="m" hint-placeholder-count="4">
+<div style="display: flex; gap: 12px; align-items: flex-start">
+<sc-if value="{{ m.reached }}" hint-placeholder-val="{{ false }}">
+<svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="Atteint" style="flex: none"><circle cx="12" cy="12" r="11" fill="#1E6F52"></circle><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</sc-if>
+<sc-if value="{{ m.locked }}" hint-placeholder-val="{{ true }}">
+<svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="Pas encore atteint" style="flex: none"><circle cx="12" cy="12" r="10" fill="none" stroke="#B9C0B6" stroke-width="2"></circle></svg>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="{{ m.whenStyle }}">{{ m.when }}</span>
+<span style="{{ m.textStyle }}">{{ m.text }}</span>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-for>
+
+<button type="button" onClick="{{ toggleInfo }}" style="align-self: flex-start; height: 44px; padding: 0; border: none; background: none; color: #1E6F52; font-size: 15px; font-weight: 600; cursor: pointer">{{ infoLabel }}</button>
+<sc-if value="{{ showInfo }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; font-size: 13px; line-height: 1.5; color: #55605A">Temps de vie : environ 20 minutes par cigarette évitée (UCL, 2024) et 19 minutes par verre évité au-dessus de 10 verres par semaine (Lancet, 2018). Bienfaits : Vidal / INPES et Santé publique France. Ce sont des moyennes de population, pas une prédiction pour toi.</p>
+</sc-if>
+</div>
+</sc-if>
+
+<!-- ÉCRAN 7 : BILAN -->
+<sc-if value="{{ isBilan }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">{{ bilanTitle }}</h2>
+
+<sc-if value="{{ noHistory }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: #55605A">Ton premier bilan arrivera à la fin de ta première semaine. Continue de noter ta consommation sur l'accueil.</p>
+</sc-if>
+
+<sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ true }}">
+<div style="{{ weekHero.box }}">
+<sc-for list="{{ weekHero.items }}" as="it" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="{{ it.valueStyle }}">{{ it.value }}</span>
+<span style="{{ it.labelStyle }}">{{ it.label }}</span>
+</div>
+</sc-for>
+<span style="{{ weekHero.noteStyle }}">{{ weekHero.note }}</span>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{ bilanLines }}" as="line" hint-placeholder-count="3">
+<div style="display: flex; gap: 10px; align-items: flex-start">
+<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M5 13l4 4L19 7" fill="none" stroke="#1E6F52" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-size: 15px; line-height: 1.45">{{ line.text }}</span>
+</div>
+</sc-for>
+</div>
+
+<sc-for list="{{ charts }}" as="chart" hint-placeholder-count="1">
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 15px; font-weight: 600">{{ chart.title }}</span>
+<div style="display: flex; align-items: flex-end; gap: 8px; height: 150px">
+<sc-for list="{{ chart.bars }}" as="bar" hint-placeholder-count="4">
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; justify-content: flex-end; height: 100%">
+<span style="font-size: 12px; font-weight: 600; color: #16201B">{{ bar.val }}</span>
+<div style="{{ bar.style }}"></div>
+<span style="font-size: 12px; color: #55605A">{{ bar.label }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+
+<div style="background: #E3F0EA; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 14px; font-weight: 600; color: #14513B">Ton palier pour la semaine {{ weekNum }}</span>
+<sc-for list="{{ nextTargets }}" as="t" hint-placeholder-count="1">
+<span style="font-size: 17px; font-weight: 600; color: #14513B">{{ t.text }}</span>
+</sc-for>
+</div>
+<sc-for list="{{ quitOffers }}" as="q" hint-placeholder-count="1">
+<button type="button" onClick="{{ q.pick }}" style="min-height: 48px; padding: 0 14px; border: 1.5px solid #1E6F52; border-radius: 14px; background: #FFFFFF; color: #1E6F52; font-size: 15px; font-weight: 600; cursor: pointer">{{ q.label }}</button>
+</sc-for>
+
+<button type="button" onClick="{{ toggleInfo }}" style="align-self: flex-start; height: 44px; padding: 0; border: none; background: none; color: #1E6F52; font-size: 15px; font-weight: 600; cursor: pointer">{{ infoLabel }}</button>
+<sc-if value="{{ showInfo }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; font-size: 13px; line-height: 1.5; color: #55605A">Temps de vie : environ 20 minutes par cigarette évitée (UCL, 2024) et 19 minutes par verre évité au-dessus de 10 verres par semaine (Lancet, 2018). Ce sont des moyennes de population, pas une prédiction pour toi. Pour le cœur, seul l'arrêt complet du tabac fait disparaître l'essentiel du risque : chaque palier t'en rapproche.</p>
+</sc-if>
+</sc-if>
+</div>
+</sc-if>
+
+<!-- ÉCRAN 8 : SOS -->
+<sc-if value="{{ isSos }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; line-height: 1.15">Une envie forte ?</h2>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: #55605A">Une envie monte, puis redescend. Essaie l'une de ces pistes avant de décider.</p>
+<div style="background: #FFFFFF; border: 1px solid #E1E4DE; border-radius: 20px; padding: 6px 18px; display: flex; flex-direction: column">
+<div style="display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #EDEFEA">
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #1E6F52">1</span>
+<span style="font-size: 15px; line-height: 1.45"><strong>Respire</strong> : inspire 4 secondes, souffle 6 secondes, dix fois.</span>
+</div>
+<div style="display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #EDEFEA">
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #1E6F52">2</span>
+<span style="font-size: 15px; line-height: 1.45"><strong>Bouge</strong> : marche ou change de pièce pendant 5 minutes.</span>
+</div>
+<div style="display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #EDEFEA">
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #1E6F52">3</span>
+<span style="font-size: 15px; line-height: 1.45"><strong>Occupe ta bouche et tes mains</strong> : un grand verre d'eau, un chewing-gum.</span>
+</div>
+<div style="display: flex; gap: 14px; padding: 14px 0">
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #1E6F52">4</span>
+<span style="font-size: 15px; line-height: 1.45"><strong>Rappelle-toi</strong> : tu as déjà économisé {{ allMoney }}.</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<a href="tel:3989" style="display: flex; justify-content: space-between; align-items: center; min-height: 56px; padding: 0 18px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E1E4DE; text-decoration: none; color: #16201B"><span style="font-size: 15px; font-weight: 600">Tabac Info Service</span><span style="font-size: 15px; color: #1E6F52; font-weight: 600">39 89</span></a>
+<a href="tel:0980980930" style="display: flex; justify-content: space-between; align-items: center; min-height: 56px; padding: 0 18px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E1E4DE; text-decoration: none; color: #16201B"><span style="font-size: 15px; font-weight: 600">Alcool Info Service</span><span style="font-size: 15px; color: #1E6F52; font-weight: 600">0 980 980 930</span></a>
+</div>
+</div>
+</sc-if>
+
+</div>
+
+
+
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-label="Fermer les réglages" onClick="{{ closeMenu }}" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 9; border: none; padding: 0; background: rgba(22, 32, 27, 0.28); cursor: pointer"></button>
+<div role="menu" aria-label="Réglages" style="position: absolute; top: 100px; left: 16px; width: 300px; z-index: 10; background: #FFFFFF; border-radius: 18px; box-shadow: 0 12px 32px rgba(22, 32, 27, 0.22); padding: 8px; display: flex; flex-direction: column">
+<span style="font-size: 13px; font-weight: 700; letter-spacing: 0.4px; color: #55605A; padding: 8px 10px 6px">RÉGLAGES</span>
+<sc-for list="{{ menuItems }}" as="mi" hint-placeholder-count="4">
+<button type="button" role="menuitem" onClick="{{ mi.pick }}" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 56px; padding: 8px 10px; border: none; border-radius: 12px; background: #FFFFFF; text-align: left; cursor: pointer; color: #16201B">
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-size: 15px; font-weight: 600">{{ mi.label }}</span>
+<span style="font-size: 13px; color: #55605A">{{ mi.sub }}</span>
+</span>
+<span style="font-size: 18px; color: #8A938D">›</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</div>

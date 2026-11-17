@@ -1,0 +1,21 @@
+{
+  "name": "purehealth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pure Health : réduire le tabac, l'alcool et la vape à son rythme.",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "icons": "node tools/icons.mjs"
+  },
+  "dependencies": {
+    "preact": "^10.24.0"
+  },
+  "devDependencies": {
+    "@fontsource/inter": "^5.1.0",
+    "@fontsource/space-grotesk": "^5.1.0",
+    "esbuild": "^0.24.0",
+    "parse5": "^7.2.0",
+    "sharp": "^0.33.5"
+  }
+}
